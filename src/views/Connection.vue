@@ -13,8 +13,8 @@
         <div :style="{ 'max-height': 'calc(100% - 32px)' }" class="pt-4 flex-1">
           <Transition name="fade" mode="out-in">
             <div class="h-full overflow-y-scroll" v-if="!searchWifi">
-              <div @click="pickWifi?.ssid === wifi.ssid ? pickWifi = undefined : pickWifi = wifi" v-for="(wifi) in wifis "
-                :key="wifi.ssid" class="flex flex-col cursor-pointer py-3 mx-4 box-content relative overflow-hidden">
+              <div v-if="wifis.length > 0" @click="pickWifiChange(wifi)" v-for="(wifi) in wifis " :key="wifi.ssid"
+                class="active:bg-slate-200 transition-colors flex flex-col cursor-pointer py-3 box-content relative overflow-hidden">
                 <div class="flex flex-1">
                   <div class="flex justify-center items-center pl-3 pr-5">
                     <WifiIcon class="h-6 w-6 text-green-500" />
@@ -57,6 +57,10 @@
                   </div>
                 </div>
               </div>
+              <div v-else class="h-full flex flex-col justify-center items-center">
+                <SignalSlashIcon class="w-20 h-20 text-slate-500 drop-shadow-md" />
+                <span class="pt-2">chưa có sóng WiFi nào được chọn để cài đặt kết nối.</span>
+              </div>
             </div>
             <div class="h-full flex justify-center" v-else>
               <div class="flex flex-col items-center justify-center">
@@ -90,7 +94,7 @@
                 </n-form>
               </div>
               <n-space justify="end">
-                <n-button :loading="loading" icon-placement="right" @click="handleConnectWifi">
+                <n-button :loading="loadingSendConfig" icon-placement="right" @click="handleConnectWifi">
                   Kết nối
                 </n-button>
               </n-space>
@@ -103,13 +107,59 @@
         </div>
       </div>
     </div>
+    <n-modal style="margin: 0 2rem;" :show="modalPickWifi" :on-mask-click="cancelModalMobile" transform-origin="center">
+      <n-card title="Kết nối WiFi" :bordered="false" size="huge" role="dialog" aria-modal="true">
+        <template #header-extra>
+          <n-button @click="cancelModalMobile" strong secondary circle>
+            <template #icon>
+              <XCircleIcon />
+            </template>
+          </n-button>
+        </template>
+        <transition name="fade" mode="out-in">
+          <div v-if="connectionState === StateConnection.SUCCESS">
+            <CheckBadgeIcon class="w-20 h-20 text-green-500 mx-auto" />
+            <p class="text-center mt-2">bạn đã thiết lập kết nối thành công.</p>
+          </div>
+          <div v-else-if="connectionState === StateConnection.FAILURE">
+            <XCircleIcon class="w-20 h-20 text-red-500 mx-auto" />
+            <p class="text-center mt-2">thiết lập kết nối thất bại.</p>
+          </div>
+          <n-form v-else ref="formRef" :label-width="80" :model="formValue" :rules="rules">
+            <n-form-item label="SSID" path="ssid">
+              <n-input disabled v-model:value="formValue.ssid" placeholder="Input SSID" />
+            </n-form-item>
+            <n-form-item label="MAC" path="mac">
+              <n-input disabled v-model:value="formValue.mac" placeholder="Input MAC" />
+            </n-form-item>
+            <n-form-item label="Password" path="password">
+              <n-input v-model:value="formValue.password" placeholder="Input Password" />
+            </n-form-item>
+          </n-form>
+        </transition>
+        <template #footer>
+          <n-space justify="end">
+            <n-button type="tertiary" @click="cancelModalMobile">
+              huỷ
+            </n-button>
+            <n-button v-if="connectionState === StateConnection.UNKNOWN" type="primary" :loading="loadingSendConfig"
+              icon-placement="right" @click="handleConnectWifi">
+              Kết nối
+            </n-button>
+            <n-button v-else type="primary" @click="connectionState = StateConnection.UNKNOWN">
+              nhập lại
+            </n-button>
+          </n-space>
+        </template>
+      </n-card>
+    </n-modal>
   </div>
 </template>
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { WifiIcon, ArrowRightCircleIcon, SignalSlashIcon, CheckCircleIcon } from '@heroicons/vue/24/solid';
-import { NButton, NForm, NFormItem, NInput, NSpin, NSpace, type FormRules, type FormItemRule } from 'naive-ui';
+import { WifiIcon, XCircleIcon, ArrowRightCircleIcon, SignalSlashIcon, CheckCircleIcon, CheckBadgeIcon } from '@heroicons/vue/24/solid';
+import { NModal, NCard, NButton, NForm, NFormItem, NInput, NSpin, NSpace, type FormRules, type FormItemRule } from 'naive-ui';
 import axios from 'axios';
 
 export interface WifiType {
@@ -133,12 +183,20 @@ interface WifiInfoFlat extends WifiInfo {
   rssiRaw: number,
 }
 
+enum StateConnection {
+  SUCCESS,
+  FAILURE,
+  UNKNOWN,
+}
+
 const wifis = ref<Array<WifiInfoFlat> | []>([]);
 
 const pickWifi = ref<WifiInfoFlat | undefined>(undefined);
 const searchWifi = ref<boolean>(true);
 const reload = ref<boolean>(false);
-const loading = ref<boolean>(false);
+const loadingSendConfig = ref<boolean>(false);
+const modalPickWifi = ref<boolean>(false);
+const connectionState = ref<StateConnection>(StateConnection.UNKNOWN);
 
 const formValue = ref({
   ssid: '',
@@ -213,8 +271,24 @@ onBeforeUnmount(() => {
   clearInterval(intervalId);
 })
 
+const cancelModalMobile = () => {
+  if (!loadingSendConfig.value) {
+    modalPickWifi.value = false;
+  }
+}
+
+const pickWifiChange = (wifi: WifiInfoFlat) => {
+  pickWifi.value = wifi;
+  modalPickWifi.value = true;
+  connectionState.value = StateConnection.UNKNOWN;
+}
+
 const handleConnectWifi = () => {
-  loading.value = !loading.value;
+  loadingSendConfig.value = true;
+  setTimeout(() => {
+    loadingSendConfig.value = false;
+    connectionState.value = connectionState.value === StateConnection.SUCCESS ? StateConnection.FAILURE : StateConnection.SUCCESS;
+  }, 2000);
 }
 </script>
 

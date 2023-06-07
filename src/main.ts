@@ -23,8 +23,12 @@ import { IonicVue } from '@ionic/vue';
 /* Theme variables */
 // import './theme/variables.css';
 
-import './assets/vue/transition.css'
 import './assets/tailwind/style.css'
+import './assets/vue/transition.css'
+
+const meta = document.createElement('meta')
+meta.name = 'naive-ui-style'
+document.head.appendChild(meta)
 
 const app = createApp(App)
   .use(IonicVue)
