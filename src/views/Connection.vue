@@ -1,9 +1,9 @@
 <template>
   <div class="h-full flex flex-col overflow-hidden max-h-full">
-    <h1 class="capitalize text-2xl font-semibold pb-4 col-span-12">thiết lập kết nối mạng</h1>
+    <h1 class="capitalize text-2xl pb-4 col-span-12">thiết lập kết nối mạng</h1>
     <div :style="{ 'max-height': 'calc(100% - 48px)' }" class="grid grid-cols-12 gap-x-4 flex-1">
       <div class="col-span-6 flex flex-col overflow-hidden max-sm:col-span-12">
-        <p class="text-lg font-semibold flex items-center">
+        <p class="text-lg flex items-center">
           <span>Mạng xung quanh</span>
           <Transition name="fade" mode="out-in">
             <n-spin v-if="reload" class="pl-2" :size="18" />
@@ -37,18 +37,13 @@
                       </span>
                     </p>
                   </div>
-                  <div
-                    :class="`flex flex-col ${pickWifi?.ssid === wifi.ssid ? 'active' : ''} transition-transform max-sm:disable-tranform`">
+                  <div :class="`flex flex-col ${pickWifi?.ssid === wifi.ssid ? 'active' : ''}`">
                     <span class="text-center">
                       {{ wifi.rssiPercent }}%
                     </span>
                     <span>
                       {{ wifi.rssiRaw }} dBm
                     </span>
-                  </div>
-                  <div
-                    :class="`flex items-center ${pickWifi?.ssid === wifi.ssid ? '' : 'translate-x-full'} transition-transform max-sm:hidden`">
-                    <ArrowRightCircleIcon class="h-8 w-8 text-green-500" />
                   </div>
                 </div>
                 <div class="overflow-hidden rounded-sm mt-2">
@@ -59,7 +54,8 @@
               </div>
               <div v-else class="h-full flex flex-col justify-center items-center">
                 <SignalSlashIcon class="w-20 h-20 text-slate-500 drop-shadow-md" />
-                <span class="pt-2">chưa có sóng WiFi nào được chọn để cài đặt kết nối.</span>
+                <span v-if="ssidInvalid" class="pt-2">vui lòng kết nối với thiết bị esp.</span>
+                <span v-else class="pt-2">chưa tìm được WiFi.</span>
               </div>
             </div>
             <div class="h-full flex justify-center" v-else>
@@ -71,37 +67,6 @@
                   đang quét mạng xung quanh bạn đợi tý nhé.
                 </p>
               </div>
-            </div>
-          </Transition>
-        </div>
-      </div>
-      <div class="col-span-6 flex flex-col max-sm:hidden">
-        <div :class="`flex-1 flex flex-col ${pickWifi ? '' : 'justify-center'}`">
-          <Transition name="fade" mode="out-in">
-            <div class="h-full" v-if="pickWifi">
-              <p class="text-lg font-semibold">Kết nối mạng</p>
-              <div class="mt-4">
-                <n-form ref="formRef" :label-width="80" :model="formValue" :rules="rules">
-                  <n-form-item label="SSID" path="ssid">
-                    <n-input disabled v-model:value="formValue.ssid" placeholder="Input SSID" />
-                  </n-form-item>
-                  <n-form-item label="MAC" path="mac">
-                    <n-input disabled v-model:value="formValue.mac" placeholder="Input MAC" />
-                  </n-form-item>
-                  <n-form-item label="Password" path="password">
-                    <n-input v-model:value="formValue.password" placeholder="Input Password" />
-                  </n-form-item>
-                </n-form>
-              </div>
-              <n-space justify="end">
-                <n-button :loading="loadingSendConfig" icon-placement="right" @click="handleConnectWifi">
-                  Kết nối
-                </n-button>
-              </n-space>
-            </div>
-            <div v-else class="h-full flex flex-col justify-center items-center max-sm:hidden">
-              <SignalSlashIcon class="w-20 h-20 text-slate-500 drop-shadow-md" />
-              <span class="pt-2">chưa có sóng WiFi nào được chọn để cài đặt kết nối.</span>
             </div>
           </Transition>
         </div>
@@ -157,6 +122,7 @@
 </template>
 
 <script setup lang="ts">
+import { WifiWizard2 } from '@awesome-cordova-plugins/wifi-wizard-2';
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { WifiIcon, XCircleIcon, ArrowRightCircleIcon, SignalSlashIcon, CheckCircleIcon, CheckBadgeIcon } from '@heroicons/vue/24/solid';
 import { NModal, NCard, NButton, NForm, NFormItem, NInput, NSpin, NSpace, type FormRules, type FormItemRule } from 'naive-ui';
@@ -196,6 +162,7 @@ const searchWifi = ref<boolean>(true);
 const reload = ref<boolean>(false);
 const loadingSendConfig = ref<boolean>(false);
 const modalPickWifi = ref<boolean>(false);
+const ssidInvalid = ref<boolean>(false);
 const connectionState = ref<StateConnection>(StateConnection.UNKNOWN);
 
 const formValue = ref({
@@ -247,11 +214,17 @@ const scanWifiList = async () => {
     reload.value = true;
   }
   try {
-    const response = await axios.get(`http://${import.meta.env.VITE_SERVER_FETCH}/api/v1/wifi/scan`)
+    const response = await axios.get(`http://${import.meta.env.VITE_SERVER_FETCH}/api/v1/wifi/scan`, { timeout: 5000 })
     const wifisPayload = response.data as Array<WifiInfo> | [];
     wifis.value = wifisPayload.map(wifi => ({ ...wifi, rssiRaw: wifi.rssi, rssiPercent: Math.min(Math.max(2 * (wifi.rssi + 100), 0), 100) })).sort((wifiFirst, wifiLast) => wifiLast.rssiPercent - wifiFirst.rssiPercent);
   } catch (error) {
     console.log(error);
+    const ssid = await WifiWizard2.getConnectedSSID() as string;
+    if (!ssid.toLocaleLowerCase().includes('esp')) {
+      ssidInvalid.value = true;
+      clearInterval(intervalId);
+    }
+    console.log(ssid);
   }
   reload.value = false;
 }

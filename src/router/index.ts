@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from '@ionic/vue-router';
 import { RouteRecordRaw } from 'vue-router';
-import Connection from '../views/Connection.vue'
+import Connection from '@/views/Connection.vue';
+import SystemInfo from '@/views/SystemInfo.vue';
+import RequireAccessNetwork from '@/views/RequireAccessNetwork.vue';
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -11,6 +13,16 @@ const routes: Array<RouteRecordRaw> = [
     path: '/connection',
     name: 'connection',
     component: Connection
+  },
+  {
+    path: '/require-network',
+    name: 'require-access-network',
+    component: RequireAccessNetwork
+  },
+  {
+    path: '/system-info',
+    name: 'system-info',
+    component: SystemInfo
   }
 ]
 

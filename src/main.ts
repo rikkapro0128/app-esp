@@ -22,17 +22,25 @@ import { IonicVue } from '@ionic/vue';
 
 /* Theme variables */
 // import './theme/variables.css';
+import { createPinia } from 'pinia'
+
+import { checkPermission } from '@/permission';
 
 import './assets/tailwind/style.css'
 import './assets/vue/transition.css'
 
 const meta = document.createElement('meta')
+const pinia = createPinia()
+
 meta.name = 'naive-ui-style'
 document.head.appendChild(meta)
 
+document.addEventListener('deviceready', checkPermission);
+
 const app = createApp(App)
   .use(IonicVue)
-  .use(router);
+  .use(router)
+  .use(pinia)
   
 router.isReady().then(() => {
   app.mount('#app');

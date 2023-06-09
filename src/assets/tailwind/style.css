@@ -2,11 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
+
+@font-face {
+  font-family: "Roboto";
+  src: url("../fonts/roboto/Roboto-Medium.ttf") format("truetype"); /* Safari, Android, iOS */
+}
+
 @layer utilities {
   body {
-      @apply bg-slate-50 text-slate-600 select-none;
+    @apply bg-slate-50 text-slate-600 select-none;
   }
   .disable-tranform {
     transform: none;
+  }
+}
+
+@layer base {
+  * {
+    font-family: 'Roboto' , Courier, monospace;
   }
 }
