@@ -47,7 +47,7 @@ const router = useRouter();
 const open = ref<boolean>(false);
 
 const drawerInfo: Array<DrawerInfo> = [
-  { name: 'system-info', title: 'thông tin hệ thống', icon: InformationCircleIcon },
+  { name: 'device-info', title: 'thông tin hệ thống', icon: InformationCircleIcon },
   { name: 'connection', title: 'cấu hình mạng', icon: WifiIcon },
 ]
 

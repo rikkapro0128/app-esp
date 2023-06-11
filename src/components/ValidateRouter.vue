@@ -3,42 +3,42 @@
 <script setup lang="ts">
 import { useDialog } from "naive-ui";
 
-import { WifiWizard2 } from "@awesome-cordova-plugins/wifi-wizard-2";
+import { useRouter } from 'vue-router';
 
-import { StatusInternet } from "@/type";
+import { Network } from '@capacitor/network';
+import { OpenNativeSettings } from '@awesome-cordova-plugins/open-native-settings';
 
-
+const router = useRouter();
 const dialog = useDialog();
 
-// router.beforeEach(async (to, from) => {
-//   if (to.meta.requireInternet) {
-    // try {
-    //   const status = await WifiWizard2.canConnectToInternet();
-    //   if (status === StatusInternet.IS_CONNECTED_TO_INTERNET) {
-    //     return to;
-    //   }
-    //   console.log(status);
+router.beforeEach(async (to, from, next) => {
+  if (to.meta?.requireInternet) {
+    const statusNetwork = await Network.getStatus();
+    if (!statusNetwork.connected) {
+      const ctxD = dialog.warning({
+        title: 'Yêu cầu kết nối internet',
+        content: 'bạn vui lòng kết nối wifi có internet để truy cập các giao diện khác nhé!',
+        positiveText: 'mở cài đặt wifi',
+        negativeText: 'Thôi',
+        maskClosable: false,
+        transformOrigin: 'center',
+        onPositiveClick: async () => {
+          ctxD.loading = true;
+          try {
+            await OpenNativeSettings.open('wifi')
+          } catch (error) {
+            console.log(error);
+          }
+          ctxD.loading = false;
+        }
+      });
+      return false;
+    } else {
+      next();
+    }
+  } else {
+    next();
+  }
+})
 
-    // } catch (error) {
-    //   console.log(error);
-
-    //   if (error === StatusInternet.NOT_CONNECTED_TO_INTERNET) {
-    //     // const ctxD = dialog.warning({
-    //     //   title: "Yêu cầu WiFi",
-    //     //   content: "Vui lòng kết nối mạng có internet để tiếp tục!",
-    //     //   positiveText: "Mở wifi setting",
-    //     //   negativeText: "Thôi",
-    //     //   maskClosable: false,
-    //     //   onPositiveClick: async () => {
-    //     //     ctxD.loading = true;
-    //     //   },
-    //     //   onAfterLeave: () => {
-    //     //     ctxD.loading = false;
-    //     //   },
-    //     // });
-    //     return from;
-    //   }
-    // }
-//   }
-// });
 </script>

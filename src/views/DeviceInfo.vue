@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="relative h-12">
-      <h1 class="text-2xl pb-4 fixed">Thông tin hệ thống</h1>
+      <h1 class="text-2xl pb-4 fixed">Thông tin thiết bị</h1>
     </div>
     <div class="pt-4">
       <span>Lorem ipsum dolor sit amet consectetur adipisicing elit. Sed minima iste dolores molestias. Tempora

@@ -1,6 +1,6 @@
 <template>
   <div>
-
+    yêu cầu bạn cần cs internet
   </div>
 </template>
 

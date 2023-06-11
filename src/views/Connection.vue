@@ -136,9 +136,9 @@ import { App } from '@capacitor/app';
 import { WifiWizard2 } from '@awesome-cordova-plugins/wifi-wizard-2';
 import { OpenNativeSettings } from '@awesome-cordova-plugins/open-native-settings';
 
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { WifiIcon, XCircleIcon, ExclamationTriangleIcon, SignalSlashIcon, CheckCircleIcon, CheckBadgeIcon, QuestionMarkCircleIcon } from '@heroicons/vue/24/solid';
-import { NModal, NCard, NButton, NForm, NFormItem, NInput, NSpin, NSpace, type FormRules, type FormItemRule, FormInst, useDialog } from 'naive-ui';
+import { onBeforeUnmount, onMounted, ref, watch, h } from 'vue';
+import { WifiIcon, XCircleIcon, ExclamationTriangleIcon, SignalSlashIcon, CheckCircleIcon, CheckBadgeIcon } from '@heroicons/vue/24/solid';
+import { NModal, NCard, NButton, NForm, NFormItem, NInput, NSpin, NSpace, type FormRules, type FormItemRule, FormInst, useDialog, NCheckbox } from 'naive-ui';
 
 export interface WifiType {
   ssid: string;
@@ -183,6 +183,7 @@ const dialog = useDialog();
 let blockCheck: boolean = false;
 let waitPickWiFi: boolean = false;
 let bssidPresent: string;
+let intervalId: NodeJS.Timer;
 
 const wifis = ref<Array<WifiInfoFlat> | []>([]);
 
@@ -227,8 +228,6 @@ const rules: FormRules = {
   }],
 }
 
-let intervalId: NodeJS.Timer;
-
 watch(pickWifi, (pickChange) => {
   if (pickChange?.ssid) {
     formValue.value.ssid = pickChange.ssid;
@@ -240,25 +239,24 @@ watch(pickWifi, (pickChange) => {
 })
 
 const scanWifiList = async () => {
-  if (!searchWifi.value) {
-    reload.value = true;
-  }
   try {
-    const response = await CapacitorHttp.get({ url: `http://${import.meta.env.VITE_SERVER_FETCH}/api/v1/wifi/scan`, connectTimeout: 3000 });
-    const wifisPayload = response.data as Array<WifiInfo> | [];
-    wifis.value = wifisPayload.map(wifi => ({ ...wifi, rssiRaw: wifi.rssi, rssiPercent: Math.min(Math.max(2 * (wifi.rssi + 100), 0), 100) })).sort((wifiFirst, wifiLast) => wifiLast.rssiPercent - wifiFirst.rssiPercent);
-  } catch (error) {
-    console.log(error);
     const statusNetwork = await WifiWizard2.isWifiEnabled() as boolean;
     if (statusNetwork) {
       const ssid = await WifiWizard2.getConnectedSSID() as string;
       if (!ssid.toLocaleLowerCase().includes('esp')) {
         ssidInvalid.value = true;
       } else {
+        if (!searchWifi.value) {
+          reload.value = true;
+        }
         ssidInvalid.value = false;
+        const response = await CapacitorHttp.get({ url: `http://${import.meta.env.VITE_SERVER_FETCH}/api/v1/wifi/scan`, connectTimeout: 3000 });
+        const wifisPayload = response.data as Array<WifiInfo> | [];
+        wifis.value = wifisPayload.map(wifi => ({ ...wifi, rssiRaw: wifi.rssi, rssiPercent: Math.min(Math.max(2 * (wifi.rssi + 100), 0), 100) })).sort((wifiFirst, wifiLast) => wifiLast.rssiPercent - wifiFirst.rssiPercent);
       }
-      console.log(ssid);
     }
+  } catch (error) {
+    console.log(error);
   }
   reload.value = false;
 }
@@ -277,28 +275,39 @@ const checkWifiValid = async () => {
       const ssid = await WifiWizard2.getConnectedSSID() as string;
       console.log(ssid);
       if (!ssid.toLocaleLowerCase().includes('esp')) {
-        const ctxD = dialog.warning({
-          title: 'WiFi Thiết bị không hợp lệ',
-          content: 'bạn đang kết nối với WiFi không phải của thiết bị, vui lòng kết nối lại bạn nhé!',
-          positiveText: 'Mở WiFi Setting',
-          negativeText: 'Thôi',
-          onPositiveClick: async () => {
-            ctxD.loading = true;
-            try {
-              bssidPresent = await WifiWizard2.getConnectedBSSID();
-              await OpenNativeSettings.open('wifi')
-              waitPickWiFi = true;
-            } catch (error) {
-              console.log(error);
+        const dlWifiEspInvalid = JSON.parse(localStorage.getItem('dl-wifi-esp-invalid') ?? 'true');
+        console.log(dlWifiEspInvalid);
+        if (dlWifiEspInvalid) {
+          const ctxD = dialog.warning({
+            title: 'WiFi Thiết bị không hợp lệ',
+            content: () => h('div', { class: 'flex flex-col' }, [
+              h('span', 'bạn đang kết nối với WiFi không phải của thiết bị, vui lòng kết nối lại bạn nhé!'),
+              h(NCheckbox, {
+                class: 'text-green-400 italic mt-2', 'on-update:checked': (value: boolean) => {
+                  localStorage.setItem('dl-wifi-esp-invalid', `${!value}`)
+                }
+              }, () => 'không hiển thị lại nữa.')
+            ]),
+            positiveText: 'Mở WiFi Setting',
+            negativeText: 'Thôi',
+            onPositiveClick: async () => {
+              ctxD.loading = true;
+              try {
+                bssidPresent = await WifiWizard2.getConnectedBSSID();
+                await OpenNativeSettings.open('wifi')
+                waitPickWiFi = true;
+              } catch (error) {
+                console.log(error);
+              }
+              ctxD.loading = false;
+              return true;
+            },
+            onAfterLeave: () => {
+              ctxD.loading = false;
+              blockCheck = false;
             }
-            ctxD.loading = false;
-            return true;
-          },
-          onAfterLeave: () => {
-            ctxD.loading = false;
-            blockCheck = false;
-          }
-        });
+          });
+        }
       }
     }
   }
