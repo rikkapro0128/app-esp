@@ -3,12 +3,17 @@
     <h1 class="capitalize text-2xl pb-4 col-span-12">thiết lập kết nối mạng</h1>
     <div :style="{ 'max-height': 'calc(100% - 48px)' }" class="grid grid-cols-12 gap-x-4 flex-1">
       <div class="col-span-6 flex flex-col overflow-hidden max-sm:col-span-12">
-        <p class="text-lg flex items-center">
+        <p class="text-lg flex items-center justify-between">
+        <div class="flex items-center">
           <span>Mạng xung quanh</span>
           <Transition name="fade" mode="out-in">
             <n-spin v-if="reload" class="pl-2" :size="18" />
             <CheckCircleIcon v-else class="ml-2 w-6 h-6 text-green-500" />
           </Transition>
+        </div>
+        <n-button round type="primary" @click="openWifiSetting">
+          mở wifi setting
+        </n-button>
         </p>
         <div :style="{ 'max-height': 'calc(100% - 32px)' }" class="pt-4 flex-1">
           <Transition name="fade" mode="out-in">
@@ -90,6 +95,10 @@
             <XCircleIcon class="w-20 h-20 text-red-500 mx-auto" />
             <p class="text-center mt-2">thiết lập kết nối thất bại.</p>
           </div>
+          <div v-else-if="connectionState === StateConnection.WARMING">
+            <ExclamationTriangleIcon class="w-20 h-20 text-yellow-500 mx-auto" />
+            <p class="text-center mt-2">cấu hình đã tồn tại.</p>
+          </div>
           <n-form v-else ref="formRef" :label-width="80" :model="formValue" :rules="rules">
             <n-form-item label="SSID" path="ssid">
               <n-input disabled v-model:value="formValue.ssid" placeholder="Input SSID" />
@@ -122,11 +131,14 @@
 </template>
 
 <script setup lang="ts">
+import { CapacitorHttp } from '@capacitor/core';
+import { App } from '@capacitor/app';
 import { WifiWizard2 } from '@awesome-cordova-plugins/wifi-wizard-2';
+import { OpenNativeSettings } from '@awesome-cordova-plugins/open-native-settings';
+
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { WifiIcon, XCircleIcon, ArrowRightCircleIcon, SignalSlashIcon, CheckCircleIcon, CheckBadgeIcon } from '@heroicons/vue/24/solid';
-import { NModal, NCard, NButton, NForm, NFormItem, NInput, NSpin, NSpace, type FormRules, type FormItemRule } from 'naive-ui';
-import axios from 'axios';
+import { WifiIcon, XCircleIcon, ExclamationTriangleIcon, SignalSlashIcon, CheckCircleIcon, CheckBadgeIcon, QuestionMarkCircleIcon } from '@heroicons/vue/24/solid';
+import { NModal, NCard, NButton, NForm, NFormItem, NInput, NSpin, NSpace, type FormRules, type FormItemRule, FormInst, useDialog } from 'naive-ui';
 
 export interface WifiType {
   ssid: string;
@@ -152,8 +164,25 @@ interface WifiInfoFlat extends WifiInfo {
 enum StateConnection {
   SUCCESS,
   FAILURE,
+  WARMING,
   UNKNOWN,
 }
+
+enum StateConfigWifi {
+  WIFI_CONFIG_SUCCESSFULLY = 'WIFI_CONFIG_SUCCESSFULLY',
+  WIFI_CONFIG_IS_EXIST = 'WIFI_CONFIG_IS_EXIST',
+  WIFI_CONFIG_NOT_FOUND = 'WIFI_CONFIG_NOT_FOUND',
+}
+
+interface ResponseConfigWifi {
+  message: StateConfigWifi
+}
+
+const dialog = useDialog();
+
+let blockCheck: boolean = false;
+let waitPickWiFi: boolean = false;
+let bssidPresent: string;
 
 const wifis = ref<Array<WifiInfoFlat> | []>([]);
 
@@ -164,6 +193,7 @@ const loadingSendConfig = ref<boolean>(false);
 const modalPickWifi = ref<boolean>(false);
 const ssidInvalid = ref<boolean>(false);
 const connectionState = ref<StateConnection>(StateConnection.UNKNOWN);
+const formRef = ref<FormInst | null>(null)
 
 const formValue = ref({
   ssid: '',
@@ -214,21 +244,81 @@ const scanWifiList = async () => {
     reload.value = true;
   }
   try {
-    const response = await axios.get(`http://${import.meta.env.VITE_SERVER_FETCH}/api/v1/wifi/scan`, { timeout: 5000 })
+    const response = await CapacitorHttp.get({ url: `http://${import.meta.env.VITE_SERVER_FETCH}/api/v1/wifi/scan`, connectTimeout: 3000 });
     const wifisPayload = response.data as Array<WifiInfo> | [];
     wifis.value = wifisPayload.map(wifi => ({ ...wifi, rssiRaw: wifi.rssi, rssiPercent: Math.min(Math.max(2 * (wifi.rssi + 100), 0), 100) })).sort((wifiFirst, wifiLast) => wifiLast.rssiPercent - wifiFirst.rssiPercent);
   } catch (error) {
     console.log(error);
-    const ssid = await WifiWizard2.getConnectedSSID() as string;
-    if (!ssid.toLocaleLowerCase().includes('esp')) {
-      ssidInvalid.value = true;
-      clearInterval(intervalId);
+    const statusNetwork = await WifiWizard2.isWifiEnabled() as boolean;
+    if (statusNetwork) {
+      const ssid = await WifiWizard2.getConnectedSSID() as string;
+      if (!ssid.toLocaleLowerCase().includes('esp')) {
+        ssidInvalid.value = true;
+      } else {
+        ssidInvalid.value = false;
+      }
+      console.log(ssid);
     }
-    console.log(ssid);
   }
   reload.value = false;
 }
 
+const checkWifiValid = async () => {
+  if (waitPickWiFi) {
+    const bssidScope = await WifiWizard2.getConnectedBSSID();
+    if (bssidScope !== bssidPresent) {
+      if (blockCheck) { blockCheck = false; }
+    }
+  }
+  else if (!blockCheck) {
+    blockCheck = true;
+    const statusNetwork = await WifiWizard2.isWifiEnabled() as boolean;
+    if (statusNetwork) {
+      const ssid = await WifiWizard2.getConnectedSSID() as string;
+      console.log(ssid);
+      if (!ssid.toLocaleLowerCase().includes('esp')) {
+        const ctxD = dialog.warning({
+          title: 'WiFi Thiết bị không hợp lệ',
+          content: 'bạn đang kết nối với WiFi không phải của thiết bị, vui lòng kết nối lại bạn nhé!',
+          positiveText: 'Mở WiFi Setting',
+          negativeText: 'Thôi',
+          onPositiveClick: async () => {
+            ctxD.loading = true;
+            try {
+              bssidPresent = await WifiWizard2.getConnectedBSSID();
+              await OpenNativeSettings.open('wifi')
+              waitPickWiFi = true;
+            } catch (error) {
+              console.log(error);
+            }
+            ctxD.loading = false;
+            return true;
+          },
+          onAfterLeave: () => {
+            ctxD.loading = false;
+            blockCheck = false;
+          }
+        });
+      }
+    }
+  }
+}
+
+App.addListener('appStateChange', async ({ isActive }) => {
+  if (isActive) {
+    const statusNetwork = await WifiWizard2.isWifiEnabled() as boolean;
+    if (statusNetwork) {
+      const ssid = await WifiWizard2.getConnectedSSID() as string;
+      if (ssid.toLocaleLowerCase().includes('esp')) {
+        clearInterval(intervalId);
+        searchWifi.value = true;
+        await scanWifiList();
+        searchWifi.value = false;
+        intervalId = setInterval(scanWifiList, import.meta.env.VITE_POOLING_TIME_SCAN * 1 * 1000);
+      }
+    }
+  }
+})
 
 onMounted(() => {
   const run = async () => {
@@ -238,10 +328,12 @@ onMounted(() => {
     intervalId = setInterval(scanWifiList, import.meta.env.VITE_POOLING_TIME_SCAN * 1 * 1000);
   }
   run();
+  checkWifiValid();
 })
 
 onBeforeUnmount(() => {
   clearInterval(intervalId);
+  (async () => { await App.removeAllListeners(); })();
 })
 
 const cancelModalMobile = () => {
@@ -256,13 +348,40 @@ const pickWifiChange = (wifi: WifiInfoFlat) => {
   connectionState.value = StateConnection.UNKNOWN;
 }
 
-const handleConnectWifi = () => {
-  loadingSendConfig.value = true;
-  setTimeout(() => {
-    loadingSendConfig.value = false;
-    connectionState.value = connectionState.value === StateConnection.SUCCESS ? StateConnection.FAILURE : StateConnection.SUCCESS;
-  }, 2000);
+const handleConnectWifi = async (e: MouseEvent) => {
+
+  formRef.value?.validate(async (errors) => {
+    if (errors) {
+      console.log(errors);
+    } else {
+      loadingSendConfig.value = true;
+      try {
+        const response = await CapacitorHttp.post({ url: `http://${import.meta.env.VITE_SERVER_FETCH}/api/v1/wifi/connect/ap`, data: { ssid: formValue.value.ssid, bssid: formValue.value.mac, password: formValue.value.password }, headers: { 'Content-Type': 'application/json' } });
+        const { message } = response.data as ResponseConfigWifi;
+        if (message === StateConfigWifi.WIFI_CONFIG_SUCCESSFULLY) {
+          connectionState.value = StateConnection.SUCCESS;
+        } else if (message === StateConfigWifi.WIFI_CONFIG_IS_EXIST) {
+          connectionState.value = StateConnection.WARMING;
+        } else {
+          connectionState.value = StateConnection.UNKNOWN;
+        }
+      } catch (error) {
+        connectionState.value = StateConnection.FAILURE;
+        console.log(error);
+      }
+      loadingSendConfig.value = false;
+    }
+  });
 }
+
+const openWifiSetting = async () => {
+  try {
+    await OpenNativeSettings.open('wifi');
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 </script>
 
 <style scoped></style>

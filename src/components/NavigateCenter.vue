@@ -1,6 +1,6 @@
 <template>
   <div @click="open = !open"
-    class="w-10 fixed top-8 right-8 rounded-md transition-shadow active:ring-2 shadow-sm shadow-slate-300">
+    class="w-10 fixed bottom-8 right-8 rounded-md transition-shadow active:ring-2 shadow-sm shadow-slate-300 bg-white">
     <div class="flex flex-col items-center py-2">
       <div
         :class="`${open ? 'rotate-45 scale-x-[1.25] -translate-y-[1px] translate-x-[1px]' : 'rotate-0'} transition-transform origin-left w-6 h-[4px] bg-slate-500 rounded-md`">
