@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "android": "ionic capacitor run android -l --external",
+    "android": "ionic cap run android -l --external",
     "build": "vue-tsc && vite build",
     "preview": "vite preview",
     "test:e2e": "cypress run",
@@ -23,12 +23,14 @@
     "@capacitor/local-notifications": "^5.0.2",
     "@capacitor/network": "^5.0.2",
     "@capacitor/status-bar": "5.0.2",
+    "@flaticon/flaticon-uicons": "^2.2.0",
     "@heroicons/vue": "^2.0.18",
     "@ionic/vue": "^7.0.0",
     "@ionic/vue-router": "^7.0.0",
     "axios": "^1.4.0",
     "cordova-open-native-settings": "^1.5.5",
     "cordova-plugin-wifiwizard2": "^3.1.1",
+    "gsap": "^3.12.1",
     "ionicons": "^7.0.0",
     "naive-ui": "^2.34.4",
     "pinia": "^2.1.3",
@@ -36,6 +38,7 @@
     "vue-router": "^4.1.6"
   },
   "devDependencies": {
+    "@capacitor/assets": "^2.0.4",
     "@capacitor/cli": "5.0.4",
     "@vitejs/plugin-legacy": "^4.0.2",
     "@vitejs/plugin-vue": "^4.0.0",

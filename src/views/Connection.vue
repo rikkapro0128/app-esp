@@ -1,6 +1,7 @@
 <template>
   <div class="h-full flex flex-col overflow-hidden max-h-full">
     <h1 class="capitalize text-2xl pb-4 col-span-12">thiết lập kết nối mạng</h1>
+    <!-- <span>new: {{ debug }}</span> -->
     <div :style="{ 'max-height': 'calc(100% - 48px)' }" class="grid grid-cols-12 gap-x-4 flex-1">
       <div class="col-span-6 flex flex-col overflow-hidden max-sm:col-span-12">
         <p class="text-lg flex items-center justify-between">
@@ -188,6 +189,7 @@ let intervalId: NodeJS.Timer;
 const wifis = ref<Array<WifiInfoFlat> | []>([]);
 
 const pickWifi = ref<WifiInfoFlat | undefined>(undefined);
+// const debug = ref<string>('');
 const searchWifi = ref<boolean>(true);
 const reload = ref<boolean>(false);
 const loadingSendConfig = ref<boolean>(false);
@@ -250,12 +252,14 @@ const scanWifiList = async () => {
           reload.value = true;
         }
         ssidInvalid.value = false;
+        // debug.value = `http://${import.meta.env.VITE_SERVER_FETCH}/api/v1/wifi/connect/ap`;
         const response = await CapacitorHttp.get({ url: `http://${import.meta.env.VITE_SERVER_FETCH}/api/v1/wifi/scan`, connectTimeout: 3000 });
         const wifisPayload = response.data as Array<WifiInfo> | [];
         wifis.value = wifisPayload.map(wifi => ({ ...wifi, rssiRaw: wifi.rssi, rssiPercent: Math.min(Math.max(2 * (wifi.rssi + 100), 0), 100) })).sort((wifiFirst, wifiLast) => wifiLast.rssiPercent - wifiFirst.rssiPercent);
       }
     }
   } catch (error) {
+    // debug.value = `${error}`;
     console.log(error);
   }
   reload.value = false;

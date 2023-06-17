@@ -17,6 +17,11 @@
         <p class="col-span-12">Trạng thái Lưu trữ</p>
         <storage-info class="col-span-12" />
       </div>
+      <!-- storage status ui -->
+      <div class="grid grid-cols-12 gap-2 pt-4">
+        <p class="col-span-12">Ram</p>
+        <ram-info class="col-span-12" />
+      </div>
     </div>
   </div>
 </template>
@@ -26,6 +31,7 @@
 
 import CoreInfo from '@/components/CoreInfo.vue';
 import StorageInfo from '@/components/Info/Storage.vue';
+import RamInfo from '@/components/Info/Ram.vue';
 
 </script>
 

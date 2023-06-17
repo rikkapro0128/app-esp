@@ -26,8 +26,13 @@ import { createPinia } from 'pinia'
 
 import { checkPermission } from '@/permission';
 
+import gsap from 'gsap';
+import Draggable from 'gsap/Draggable';
+
 import './assets/tailwind/style.css'
 import './assets/vue/transition.css'
+import './assets/vue/icons.css'
+import '@flaticon/flaticon-uicons/css/regular/all.css'
 
 const meta = document.createElement('meta')
 const pinia = createPinia()
@@ -41,6 +46,8 @@ const app = createApp(App)
   .use(IonicVue)
   .use(router)
   .use(pinia)
+
+gsap.registerPlugin(Draggable);
   
 router.isReady().then(() => {
   app.mount('#app');

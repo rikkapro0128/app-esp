@@ -3,6 +3,7 @@ import { RouteRecordRaw } from "vue-router";
 import Connection from "@/views/Connection.vue";
 import DeviceInfo from "@/views/DeviceInfo.vue";
 import RequireAccessNetwork from "@/views/RequireAccessNetwork.vue";
+import Controll from "@/views/Controll.vue";
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -26,6 +27,14 @@ const routes: Array<RouteRecordRaw> = [
       requireInternet: true,
     },
     component: DeviceInfo,
+  },
+  {
+    path: "/controll-device",
+    name: "controll-device",
+    meta: {
+      // requireInternet: true,
+    },
+    component: Controll,
   },
 ];
 
