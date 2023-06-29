@@ -2,7 +2,8 @@
   <!-- bg for view should be: #2C2C2C -->
   <div class="knob mx-auto bg-white mt-8" :style="{ 'width': `${size}px`, 'height': `${size}px` }">
     <div class="absolute w-full h-full top-0 left-0 rounded-full knob-gradient"></div>
-    <div class="absolute -z-10 w-full h-full top-0 left-0 scale-150 knob---glow-white"></div>
+    <div :style="{ 'background': `radial-gradient(circle, ${props.color} 0%, rgba(255, 255, 255, 0) 70%)` }"
+      class="absolute -z-10 w-full h-full top-0 left-0 scale-150 rounded-full"></div>
     <div class="absolute top-1/2 left-1/2 z-10 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
       <p class="text-3xl drop-shadow-sm knob--percent text-center">
         {{ percentDimmer }}</p>
@@ -19,9 +20,11 @@
 <script setup lang="ts">
 import { Draggable } from 'gsap/Draggable';
 
-import { onMounted, ref, onUnmounted, getCurrentInstance } from 'vue';
+import { onMounted, ref, onUnmounted, getCurrentInstance, PropType } from 'vue';
 
 import { MqttClient } from 'mqtt/dist/mqtt';
+
+import { colorChannel } from '@/components/Widget/InfoWrap.vue'
 
 const props = defineProps({
   size: {
@@ -32,9 +35,8 @@ const props = defineProps({
     type: Number,
     default: 20
   },
-  colors: {
-    type: Array<string>,
-    default: ['white']
+  color: {
+    type: String as PropType<colorChannel>,
   }
 })
 

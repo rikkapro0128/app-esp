@@ -1,19 +1,20 @@
 <template>
+  <!-- bg for view: #2B2D42 -->
   <div>
     <div class="relative h-12">
       <h1 class="text-2xl pb-4 fixed">Điều khiển thiết bị</h1>
     </div>
-    <div class="">
-      <widget-wrap>
-        <template #header>
-          <title-wrap type="dimmer" title="phòng ngủ"></title-wrap>
+    <div>
+      <widget-wrap type="dimmer" :colors="['white', 'yellow', 'blue', 'green']">
+        <template #header="{ type }">
+          <title-wrap :type="type" title="phòng ngủ"></title-wrap>
         </template>
-        <template #widget>
-          <dimmer :colors="['white']" />
+        <template #widget="{ color }">
+          <dimmer :color="color" />
         </template>
-        <template #footer>
+        <template #footer="{ changeControll }">
           <n-space class="mt-8" justify="center">
-            <n-button round type="primary">
+            <n-button @click="changeControll" round type="primary">
               <i style="line-height: 0;" class="fi fi-rr-refresh"></i>
               <span class="ml-2">Đổi màu</span>
             </n-button>
