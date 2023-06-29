@@ -5,6 +5,22 @@
 @font-face {
   font-family: "Roboto";
   src: url("../fonts/roboto/Roboto-Medium.ttf") format("truetype"); /* Safari, Android, iOS */
+  font-weight: 600;
+}
+@font-face {
+  font-family: "Roboto";
+  src: url("../fonts/roboto/Roboto-Light.ttf") format("truetype"); /* Safari, Android, iOS */
+  font-weight: 400;
+}
+@font-face {
+  font-family: "Roboto";
+  src: url("../fonts/roboto/Roboto-Regular.ttf") format("truetype"); /* Safari, Android, iOS */
+  font-weight: 500;
+}
+@font-face {
+  font-family: "Roboto";
+  src: url("../fonts/roboto/Roboto-Thin.ttf") format("truetype"); /* Safari, Android, iOS */
+  font-weight: 200;
 }
 
 @layer utilities {
@@ -19,5 +35,6 @@
 @layer base {
   * {
     font-family: "Roboto", Courier, monospace;
+    font-weight: 500;
   }
 }

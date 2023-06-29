@@ -31,7 +31,7 @@
 
 <script setup lang="ts">
 import { NDrawer, NDrawerContent, NList, NListItem } from 'naive-ui';
-import { InformationCircleIcon, WifiIcon, AdjustmentsVerticalIcon } from '@heroicons/vue/24/solid';
+import { InformationCircleIcon, WifiIcon, AdjustmentsVerticalIcon, ArrowPathIcon } from '@heroicons/vue/24/solid';
 
 import { FunctionalComponent, HTMLAttributes, VNodeProps, ref } from 'vue';
 import { useRouter } from 'vue-router';
@@ -50,6 +50,7 @@ const drawerInfo: Array<DrawerInfo> = [
   { name: 'device-info', title: 'thông tin hệ thống', icon: InformationCircleIcon },
   { name: 'connection', title: 'cấu hình mạng', icon: WifiIcon },
   { name: 'controll-device', title: 'điều khiển thiết bị', icon: AdjustmentsVerticalIcon },
+  { name: 'ota-upgrade', title: 'cập nhật OTA', icon: ArrowPathIcon },
 ]
 
 const handleMenuList = (item: DrawerInfo) => {

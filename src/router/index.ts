@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from "@ionic/vue-router";
 import { RouteRecordRaw } from "vue-router";
 import Connection from "@/views/Connection.vue";
 import DeviceInfo from "@/views/DeviceInfo.vue";
+import OTAUpgrade from "@/views/OTAUpgrade.vue";
 import RequireAccessNetwork from "@/views/RequireAccessNetwork.vue";
 import Controll from "@/views/Controll.vue";
 
@@ -14,6 +15,14 @@ const routes: Array<RouteRecordRaw> = [
     path: "/connection",
     name: "connection",
     component: Connection,
+  },
+  {
+    path: "/ota-upgrade",
+    name: "ota-upgrade",
+    component: OTAUpgrade,
+    meta: {
+      requireInternet: true,
+    },
   },
   {
     path: "/require-internet",

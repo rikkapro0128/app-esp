@@ -90,7 +90,7 @@
         <transition name="fade" mode="out-in">
           <div v-if="connectionState === StateConnection.SUCCESS">
             <CheckBadgeIcon class="w-20 h-20 text-green-500 mx-auto" />
-            <p class="text-center mt-2">bạn đã thiết lập kết nối thành công.</p>
+            <p class="text-center mt-2">bạn đã thiết lập kết nối thành công tới {{ formValue.ssid }}.</p>
           </div>
           <div v-else-if="connectionState === StateConnection.FAILURE">
             <XCircleIcon class="w-20 h-20 text-red-500 mx-auto" />
@@ -171,6 +171,7 @@ enum StateConnection {
 
 enum StateConfigWifi {
   WIFI_CONFIG_SUCCESSFULLY = 'WIFI_CONFIG_SUCCESSFULLY',
+  WIFI_CONFIG_FAILURE = 'WIFI_CONFIG_FAILURE',
   WIFI_CONFIG_IS_EXIST = 'WIFI_CONFIG_IS_EXIST',
   WIFI_CONFIG_NOT_FOUND = 'WIFI_CONFIG_NOT_FOUND',
 }
@@ -242,20 +243,28 @@ watch(pickWifi, (pickChange) => {
 
 const scanWifiList = async () => {
   try {
-    const statusNetwork = await WifiWizard2.isWifiEnabled() as boolean;
-    if (statusNetwork) {
-      const ssid = await WifiWizard2.getConnectedSSID() as string;
-      if (!ssid.toLocaleLowerCase().includes('esp')) {
-        ssidInvalid.value = true;
-      } else {
-        if (!searchWifi.value) {
-          reload.value = true;
+    if (!loadingSendConfig.value) {
+      const statusNetwork = await WifiWizard2.isWifiEnabled() as boolean;
+      if (statusNetwork) {
+        const ssid = await WifiWizard2.getConnectedSSID() as string;
+        if (!ssid.toLocaleLowerCase().includes('esp')) {
+          ssidInvalid.value = true;
+          if (wifis.value.length > 0) { wifis.value = [] }
+        } else {
+          if (!searchWifi.value) {
+            reload.value = true;
+          }
+          ssidInvalid.value = false;
+          // debug.value = `http://${import.meta.env.VITE_SERVER_FETCH}/api/v1/wifi/connect/ap`;
+          try {
+            const response = await CapacitorHttp.get({ url: `http://${import.meta.env.VITE_SERVER_FETCH}/api/v1/wifi/scan`, connectTimeout: 3000 });
+            const wifisPayload = response.data as Array<WifiInfo> | [];
+            wifis.value = wifisPayload.map(wifi => ({ ...wifi, rssiRaw: wifi.rssi, rssiPercent: Math.min(Math.max(2 * (wifi.rssi + 100), 0), 100) })).sort((wifiFirst, wifiLast) => wifiLast.rssiPercent - wifiFirst.rssiPercent);
+          } catch (error) {
+            ssidInvalid.value = true;
+            if (wifis.value.length > 0) { wifis.value = [] }
+          }
         }
-        ssidInvalid.value = false;
-        // debug.value = `http://${import.meta.env.VITE_SERVER_FETCH}/api/v1/wifi/connect/ap`;
-        const response = await CapacitorHttp.get({ url: `http://${import.meta.env.VITE_SERVER_FETCH}/api/v1/wifi/scan`, connectTimeout: 3000 });
-        const wifisPayload = response.data as Array<WifiInfo> | [];
-        wifis.value = wifisPayload.map(wifi => ({ ...wifi, rssiRaw: wifi.rssi, rssiPercent: Math.min(Math.max(2 * (wifi.rssi + 100), 0), 100) })).sort((wifiFirst, wifiLast) => wifiLast.rssiPercent - wifiFirst.rssiPercent);
       }
     }
   } catch (error) {
@@ -375,6 +384,8 @@ const handleConnectWifi = async (e: MouseEvent) => {
           connectionState.value = StateConnection.SUCCESS;
         } else if (message === StateConfigWifi.WIFI_CONFIG_IS_EXIST) {
           connectionState.value = StateConnection.WARMING;
+        } else if (message === StateConfigWifi.WIFI_CONFIG_FAILURE) {
+          connectionState.value = StateConnection.FAILURE;
         } else {
           connectionState.value = StateConnection.UNKNOWN;
         }

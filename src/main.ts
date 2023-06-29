@@ -24,6 +24,10 @@ import { IonicVue } from '@ionic/vue';
 // import './theme/variables.css';
 import { createPinia } from 'pinia'
 
+import connectBroker from '@/protocol/mqtt';
+
+import mqtt from 'mqtt/dist/mqtt';
+
 import { checkPermission } from '@/permission';
 
 import gsap from 'gsap';
@@ -34,6 +38,12 @@ import './assets/vue/transition.css'
 import './assets/vue/icons.css'
 import '@flaticon/flaticon-uicons/css/regular/all.css'
 
+declare module 'vue' {
+  interface ComponentCustomProperties {
+    $clientMQTT: mqtt.MqttClient,
+  }
+}
+
 const meta = document.createElement('meta')
 const pinia = createPinia()
 
@@ -42,13 +52,22 @@ document.head.appendChild(meta)
 
 document.addEventListener('deviceready', checkPermission);
 
-const app = createApp(App)
-  .use(IonicVue)
-  .use(router)
-  .use(pinia)
+(async () => {
 
-gsap.registerPlugin(Draggable);
+  const app = createApp(App)
+    .use(IonicVue)
+    .use(router)
+    .use(pinia)
+
+  try {
+    const clientMQTT = await connectBroker();
+    app.config.globalProperties.$clientMQTT = clientMQTT;
+  } catch (error) {}
   
-router.isReady().then(() => {
-  app.mount('#app');
-});
+  gsap.registerPlugin(Draggable);
+    
+  router.isReady().then(() => {
+    app.mount('#app');
+  });
+
+})();
