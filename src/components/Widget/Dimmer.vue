@@ -2,7 +2,7 @@
   <!-- bg for view should be: #2C2C2C -->
   <div class="knob mx-auto bg-white mt-8" :style="{ 'width': `${size}px`, 'height': `${size}px` }">
     <div class="absolute w-full h-full top-0 left-0 rounded-full knob-gradient"></div>
-    <div :style="{ 'background': `radial-gradient(circle, ${props.color} 0%, rgba(255, 255, 255, 0) 70%)` }"
+    <div :style="{ 'background': `radial-gradient(circle, ${props.color} 0%, rgba(255, 255, 255, 0) 60%)` }"
       class="absolute -z-10 w-full h-full top-0 left-0 scale-150 rounded-full"></div>
     <div class="absolute top-1/2 left-1/2 z-10 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
       <p class="text-3xl drop-shadow-sm knob--percent text-center">
@@ -19,12 +19,17 @@
 
 <script setup lang="ts">
 import { Draggable } from 'gsap/Draggable';
+import gsap from 'gsap';
 
-import { onMounted, ref, onUnmounted, getCurrentInstance, PropType } from 'vue';
+import { onMounted, ref, onUnmounted, getCurrentInstance, PropType, watch } from 'vue';
 
 import { MqttClient } from 'mqtt/dist/mqtt';
 
 import { colorChannel } from '@/components/Widget/InfoWrap.vue'
+
+type BrightChannelColor = {
+  [key in colorChannel]?: number;
+};
 
 const props = defineProps({
   size: {
@@ -37,6 +42,7 @@ const props = defineProps({
   },
   color: {
     type: String as PropType<colorChannel>,
+    default: 'white'
   }
 })
 
@@ -53,17 +59,50 @@ const maxRotation = 360;
 let idTimeoutDebounce: NodeJS.Timeout;
 
 const idDevice = '7821-84e0-b478';
-const pathControll = `/${idDevice}/dimmer/controll/change`;
+const pathControll = `/${idDevice}/dimmer/write/brightness`;
+const pathRequestReadBrightness = `/${idDevice}/dimmer/read/brightness`;
+
+const pathResponseReadBrightness = `/${idDevice}/dimmer/brightness/status`;
 
 const clientMQTT = app?.appContext.config.globalProperties.$clientMQTT as MqttClient;
 
 const handleControllPercent = () => {
   if (clientMQTT.connected) {
-    clientMQTT.publish(pathControll, JSON.stringify({ percent: percentDimmer.value }), { qos: 1 });
+    clientMQTT.publish(pathControll, JSON.stringify({ [`brightness-${props.color}`]: percentDimmer.value }), { qos: 1 });
   }
 }
 
+if (clientMQTT.connected) {
+  clientMQTT.subscribe(pathResponseReadBrightness, (payload) => {
+    console.log('sub path = ', pathResponseReadBrightness);
+  });
+
+  clientMQTT.on('message', function (topic, message) {
+    if (topic === pathResponseReadBrightness) {
+      const payload: BrightChannelColor = JSON.parse(message.toString() ?? '');
+      console.log(payload);
+
+      if (dimmer.value) {
+
+        gsap.to(dimmer.value, {
+          rotate: Math.round((payload[props.color] ?? 0) * maxRotation / 100), onUpdate: function () {
+            percentDimmer.value = Math.round((Math.round(parseInt(((dimmer.value?._gsap.rotation ?? '') as string).split('deg')[0])) - minRotation) * 100 / (maxRotation - minRotation));
+          },
+        })
+
+
+
+      }
+    }
+  })
+}
+
+watch(() => props.color, (color) => {
+  clientMQTT.publish(pathRequestReadBrightness, JSON.stringify({ [color]: true }));
+})
+
 onMounted(() => {
+  clientMQTT.publish(pathRequestReadBrightness, JSON.stringify({ [props.color]: true }));
   if (dimmer.value) {
     const knob = Draggable.create(dimmer.value, {
       type: 'rotation',
@@ -83,6 +122,10 @@ onMounted(() => {
 
 onUnmounted(() => {
   if (idTimeoutDebounce) { clearTimeout(idTimeoutDebounce); }
+  clientMQTT.removeAllListeners('message');
+  clientMQTT.unsubscribe(pathResponseReadBrightness, () => {
+    console.log('unsucribe => ', pathResponseReadBrightness);
+  });
 })
 
 </script>
@@ -106,8 +149,8 @@ onUnmounted(() => {
   content: '';
   position: absolute;
   display: block;
-  width: 1rem;
-  height: 1rem;
+  width: 0.6rem;
+  height: 0.6rem;
   bottom: 1rem;
   left: 50%;
   transform: translateX(-50%);
@@ -116,15 +159,5 @@ onUnmounted(() => {
 
 .knob-gradient {
   background: linear-gradient(0deg, rgba(233, 233, 233, 0.38) 0%, rgba(255, 255, 255, 0) 100%);
-}
-
-.knob---glow-yellow {
-  background: radial-gradient(circle, rgba(245, 255, 0, 0.38139005602240894) 0%, rgba(255, 255, 255, 0) 70%);
-  border-radius: 50%;
-}
-
-.knob---glow-white {
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.381) 0%, rgba(255, 255, 255, 0) 70%);
-  border-radius: 50%;
 }
 </style>
