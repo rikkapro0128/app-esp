@@ -3,7 +3,7 @@
   <div class="knob mx-auto bg-white mt-8" :style="{ 'width': `${size}px`, 'height': `${size}px` }">
     <div class="absolute w-full h-full top-0 left-0 rounded-full knob-gradient"></div>
     <div :style="{ 'background': `radial-gradient(circle, ${props.color} 0%, rgba(255, 255, 255, 0) 60%)` }"
-      class="absolute -z-10 w-full h-full top-0 left-0 scale-150 rounded-full"></div>
+      class="absolute -z-10 w-full h-full top-0 left-0 scale-150 rounded-full transition-colors"></div>
     <div class="absolute top-1/2 left-1/2 z-10 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
       <p class="text-3xl drop-shadow-sm knob--percent text-center">
         {{ percentDimmer }}</p>
@@ -25,13 +25,17 @@ import { onMounted, ref, onUnmounted, getCurrentInstance, PropType, watch } from
 
 import { MqttClient } from 'mqtt/dist/mqtt';
 
-import { colorChannel } from '@/components/Widget/InfoWrap.vue'
+import { colorChannel } from '@/components/Widget/Dimmer';
 
 type BrightChannelColor = {
   [key in colorChannel]?: number;
 };
 
 const props = defineProps({
+  id: {
+    type: String,
+    default: '',
+  },
   size: {
     type: Number,
     default: 0.6,
@@ -58,11 +62,11 @@ const minRotation = 0;
 const maxRotation = 360;
 let idTimeoutDebounce: NodeJS.Timeout;
 
-const idDevice = '7821-84e0-b478';
-const pathControll = `/${idDevice}/dimmer/write/brightness`;
-const pathRequestReadBrightness = `/${idDevice}/dimmer/read/brightness`;
 
-const pathResponseReadBrightness = `/${idDevice}/dimmer/brightness/status`;
+const pathControll = `/${props.id}/dimmer/write/brightness`;
+const pathRequestReadBrightness = `/${props.id}/dimmer/read/brightness`;
+
+const pathResponseReadBrightness = `/${props.id}/dimmer/brightness/status`;
 
 const clientMQTT = app?.appContext.config.globalProperties.$clientMQTT as MqttClient;
 

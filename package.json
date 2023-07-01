@@ -33,6 +33,7 @@
     "axios": "^1.4.0",
     "cordova-open-native-settings": "^1.5.5",
     "cordova-plugin-wifiwizard2": "^3.1.1",
+    "cronstrue": "^2.27.0",
     "gsap": "^3.12.1",
     "ionicons": "^7.0.0",
     "mqtt": "4.3.5",

@@ -5,33 +5,18 @@
       <h1 class="text-2xl pb-4 fixed">Điều khiển thiết bị</h1>
     </div>
     <div>
-      <widget-wrap type="dimmer" :colors="['white', 'yellow']">
-        <template #header="{ type }">
-          <div class="flex justify-between">
-            <title-wrap :type="type" title="phòng ngủ"></title-wrap>
-            <n-popover style="padding: 0;" trigger="click" placement="bottom-end">
-              <template #trigger>
-                <n-button circle size="small">
-                  <template #icon>
-                    <i style="line-height: 0;" class="fi fi-rr-menu-dots-vertical font-bold"></i>
-                  </template>
-                </n-button>
-              </template>
-              <n-button-group size="large" vertical>
-                <n-button>
-                  <i style="line-height: 0;" class="fi fi-rr-calendar-clock mr-2"></i>
-                  <span>tạo schedule</span>
-                </n-button>
-                <n-button>
-                  <i style="line-height: 0;" class="fi fi-rr-share mr-2"></i>
-                  <span>chia sẻ điều khiển</span>
-                </n-button>
-              </n-button-group>
-            </n-popover>
+      <dimmer-wrap type="dimmer" :colors="['white', 'yellow']">
+        <template #header="{ type, status, id, colors }">
+          <div class="flex justify-between items-center">
+            <title-wrap :id="id" :type="type" title="phòng ngủ"></title-wrap>
+            <n-space align="center" justify="end">
+              <status-device :status="status"></status-device>
+              <dimmer-options :id-device="id" :colors="colors"></dimmer-options>
+            </n-space>
           </div>
         </template>
-        <template #widget="{ color }">
-          <dimmer :color="color" />
+        <template #widget="{ color, id }">
+          <dimmer-controll :color="color" :id="id" />
         </template>
         <template #footer="{ changeControll }">
           <n-space class="mt-8" justify="center">
@@ -41,18 +26,20 @@
             </n-button>
           </n-space>
         </template>
-      </widget-wrap>
+      </dimmer-wrap>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import WidgetWrap from '@/components/Widget/InfoWrap.vue';
-import Dimmer from '@/components/Widget/Dimmer.vue';
-import Switch from '@/components/Widget/Switch.vue';
+import DimmerWrap from '@/components/Widget/Dimmer/Wrap.vue';
+import DimmerControll from '@/components/Widget/Dimmer/Controll.vue';
+// import Switch from '@/components/Widget/Switch.vue';
 import TitleWrap from '@/components/Widget/Title.vue'
+import StatusDevice from '@/components/StatusConnection.vue';
+import DimmerOptions from '@/components/Widget/Dimmer/Options.vue';
 
-import { NButton, NSpace, NPopover, NList, NListItem, NButtonGroup } from 'naive-ui';
+import { NButton, NSpace } from 'naive-ui';
 
 </script>
 

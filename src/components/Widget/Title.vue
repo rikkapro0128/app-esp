@@ -1,8 +1,10 @@
 <template>
-  <div class="pb-4 relative z-10">
-    <i class="fi fi-rr-dot-circle mr-2"></i>
-    <n-ellipsis class="text-xl font-thin">{{ translateType[props.type] }} {{ props.title }}
-    </n-ellipsis>
+  <div class="relative z-10 flex items-center">
+    <i style="line-height: 0;" class="fi fi-rr-location-crosshairs mr-2"></i>
+    <div class="relative">
+      <n-ellipsis expand-trigger="click" class="text-xl font-thin">{{ translateType[props.type] }}</n-ellipsis>
+      <span class="absolute top-full left-0 whitespace-nowrap">id: {{ props.id ?? NaN }}</span>
+    </div>
   </div>
 </template>
 
@@ -12,7 +14,7 @@ import { NEllipsis } from 'naive-ui'
 
 import { PropType } from 'vue';
 
-import { WidgetType } from '@/components/Widget/InfoWrap.vue';
+import { WidgetType } from '@/components/Widget';
 
 const translateType = {
   'dimmer': 'Dimmer',
@@ -27,7 +29,10 @@ const props = defineProps({
   },
   title: {
     type: String,
-  }
+  },
+  id: {
+    type: String,
+  },
 });
 
 </script>
