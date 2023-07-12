@@ -8,7 +8,7 @@
 
 <script setup lang="ts">
 
-import { PropType, ref, getCurrentInstance, onUnmounted } from 'vue';
+import { PropType, ref, getCurrentInstance, onUnmounted, onMounted } from 'vue';
 import { WidgetType } from '@/components/Widget';
 import { colorChannel, TrackingResponse } from '@/components/Widget/Dimmer';
 import { MqttClient } from 'mqtt/dist/mqtt';
@@ -46,17 +46,14 @@ const changeColor = () => {
   color.value = props.colors[countColorPresent.value];
 }
 
-if (clientMQTT.connected) {
-  clientMQTT.subscribe(pathTracking, (err) => {
-    if (!err) {
-      console.log('sub path = ', pathTracking);
-    }
-  });
 
+
+if (clientMQTT.connected) {
   clientMQTT.on('message', function (topic, message) {
+    console.log(topic);
     if (topic === pathTracking) {
       const payload: TrackingResponse = JSON.parse(message.toString() ?? '');
-      // console.log(payload['epoch-time']);
+
       status.value = true;
       if (idTrackingTimeout) { clearTimeout(idTrackingTimeout) }
       idTrackingTimeout = setTimeout(() => {
@@ -66,8 +63,19 @@ if (clientMQTT.connected) {
   })
 }
 
+onMounted(() => {
+
+  if (clientMQTT.connected) {
+    clientMQTT.subscribe(pathTracking, (err) => {
+      if (!err) {
+        console.log('sub path = ', pathTracking);
+      }
+    });
+  }
+});
+
 onUnmounted(() => {
-  clientMQTT.removeAllListeners('message');
+
   clientMQTT.unsubscribe(pathTracking, () => {
     console.log('unsucribe => ', pathTracking);
   });

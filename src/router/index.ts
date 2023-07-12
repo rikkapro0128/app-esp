@@ -1,10 +1,9 @@
-import { createRouter, createWebHistory } from "@ionic/vue-router";
+import { createRouter, createWebHistory } from "vue-router";
 import { RouteRecordRaw } from "vue-router";
 import Connection from "@/views/Connection.vue";
 import DeviceInfo from "@/views/DeviceInfo.vue";
 import OTAUpgrade from "@/views/OTAUpgrade.vue";
-import RequireAccessNetwork from "@/views/RequireAccessNetwork.vue";
-import Controll from "@/views/Controll.vue";
+import ControllDevice from "@/views/Controll.vue";
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -25,11 +24,6 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
-    path: "/require-internet",
-    name: "require-internet",
-    component: RequireAccessNetwork,
-  },
-  {
     path: "/device-info",
     name: "device-info",
     meta: {
@@ -41,9 +35,9 @@ const routes: Array<RouteRecordRaw> = [
     path: "/controll-device",
     name: "controll-device",
     meta: {
-      // requireInternet: true,
+      requireInternet: true,
     },
-    component: Controll,
+    component: ControllDevice,
   },
 ];
 

@@ -22,7 +22,7 @@
       </n-button-group>
     </n-popover>
     <!-- define drawer for schedule -->
-    <n-drawer v-model:show="drawerSchedule" default-height="50%" placement="bottom">
+    <n-drawer v-model:show="drawerSchedule" default-height="70%" placement="bottom">
       <n-drawer-content>
         <template #header>
           <div class="flex items-center">
@@ -45,7 +45,8 @@
     </n-drawer>
     <!-- define modal for create schedule -->
     <!-- v-bind:show="modalSchedule" -->
-    <modal-schedule :show="modalSchedule" :colors="props.colors" v-on:close="handleCloseModalSchedule" />
+    <modal-schedule :id-device="props.idDevice" :show="modalSchedule" :colors="props.colors"
+      v-on:close="handleCloseModalSchedule" />
   </div>
 </template>
 

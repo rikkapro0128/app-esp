@@ -7,7 +7,7 @@
     <div class="absolute top-1/2 left-1/2 z-10 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
       <p class="text-3xl drop-shadow-sm knob--percent text-center">
         {{ percentDimmer }}</p>
-      <i class="fi fi-rr-bulb text-center block text-3xl mt-2 drop-shadow-md"></i>
+      <i class="fi fi-rr-brightness text-center block text-3xl mt-2 drop-shadow-md"></i>
     </div>
     <div ref="dimmer" class="w-full h-full relative">
       <div
@@ -77,36 +77,34 @@ const handleControllPercent = () => {
 }
 
 if (clientMQTT.connected) {
-  clientMQTT.subscribe(pathResponseReadBrightness, (payload) => {
-    console.log('sub path = ', pathResponseReadBrightness);
-  });
-
   clientMQTT.on('message', function (topic, message) {
     if (topic === pathResponseReadBrightness) {
       const payload: BrightChannelColor = JSON.parse(message.toString() ?? '');
-      console.log(payload);
 
       if (dimmer.value) {
-
-        gsap.to(dimmer.value, {
-          rotate: Math.round((payload[props.color] ?? 0) * maxRotation / 100), onUpdate: function () {
-            percentDimmer.value = Math.round((Math.round(parseInt(((dimmer.value?._gsap.rotation ?? '') as string).split('deg')[0])) - minRotation) * 100 / (maxRotation - minRotation));
-          },
-        })
-
-
+        if (Object.keys(payload)[0] === props.color) {
+          gsap.to(dimmer.value, {
+            rotate: Math.round((payload[props.color] ?? 0) * maxRotation / 100), onUpdate: function () {
+              percentDimmer.value = Math.round((Math.round(parseInt(((dimmer.value?._gsap.rotation ?? '') as string).split('deg')[0])) - minRotation) * 100 / (maxRotation - minRotation));
+            },
+          })
+        }
 
       }
     }
   })
 }
 
-watch(() => props.color, (color) => {
-  clientMQTT.publish(pathRequestReadBrightness, JSON.stringify({ [color]: true }));
-})
-
 onMounted(() => {
+
   clientMQTT.publish(pathRequestReadBrightness, JSON.stringify({ [props.color]: true }));
+
+  if (clientMQTT.connected) {
+    clientMQTT.subscribe(pathResponseReadBrightness, (payload) => {
+      console.log('sub path = ', pathResponseReadBrightness);
+    });
+  }
+
   if (dimmer.value) {
     const knob = Draggable.create(dimmer.value, {
       type: 'rotation',
@@ -122,11 +120,16 @@ onMounted(() => {
       }
     })
   }
+
+})
+
+watch(() => props.color, (color) => {
+  clientMQTT.publish(pathRequestReadBrightness, JSON.stringify({ [color]: true }));
 })
 
 onUnmounted(() => {
   if (idTimeoutDebounce) { clearTimeout(idTimeoutDebounce); }
-  clientMQTT.removeAllListeners('message');
+
   clientMQTT.unsubscribe(pathResponseReadBrightness, () => {
     console.log('unsucribe => ', pathResponseReadBrightness);
   });

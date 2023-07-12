@@ -37,4 +37,8 @@
     font-family: "Roboto", Courier, monospace;
     font-weight: 500;
   }
+  .miru__shadow--soft {
+    box-shadow: 0 14px 30px rgba(103, 132, 187, 0.1),
+      0 4px 4px rgba(103, 132, 187, 0.04);
+  }
 }

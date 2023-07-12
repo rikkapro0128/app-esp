@@ -8,8 +8,11 @@
         </div>
       </template>
       <n-space vertical>
-        <cron-picker />
-        <exec-picker :colors="props.colors" v-on:change-brightness="" />
+        <cron-picker @change="handleChangeCronJob" />
+        <n-checkbox v-model:checked="activeRepeat">
+          cho phép lặp lại
+        </n-checkbox>
+        <exec-picker :colors="props.colors" @change-brightness="handleChangeBrightness" />
       </n-space>
       <template #footer>
         <n-space justify="end">
@@ -28,12 +31,16 @@
 import CronPicker from '@/components/Widget/Dimmer/Schedule/CronPicker.vue';
 import ExecPicker from '@/components/Widget/Dimmer/Schedule/ExecPicker.vue';
 
-import { colorChannel } from '@/components/Widget/Dimmer';
+import { colorChannel, BrightnessColor } from '@/components/Widget/Dimmer';
+import notyf from '@/notyf';
 
-import { ref } from 'vue';
+import { ref, getCurrentInstance } from 'vue';
 
-import { NModal, NCard, NButton, NSpace } from 'naive-ui';
+import { NModal, NCard, NButton, NSpace, NCheckbox } from 'naive-ui';
 
+import { MqttClient } from 'mqtt/dist/mqtt';
+
+const app = getCurrentInstance();
 const props = defineProps({
   show: {
     type: Boolean,
@@ -48,14 +55,45 @@ const props = defineProps({
   }
 })
 
+const pathPublishSchedule = props.idDevice ? `/${props.idDevice}/dimmer/write/schedule` : undefined;
+
+const clientMQTT = app?.appContext.config.globalProperties.$clientMQTT as MqttClient;
+
+const activeRepeat = ref<boolean>(true);
+const cronjob = ref<string>('* * * * * *');
+const dimmerBrightness = ref<BrightnessColor>({ ...props.colors.reduce((ctx, color) => ({ ...ctx, [color]: 50 }), {}) })
+
 const emit = defineEmits<{
   (e: 'close'): void
 }>()
 
 const creatingSchedule = ref<boolean>(false);
 
+const handleChangeCronJob = (job: string) => {
+  cronjob.value = job;
+}
+
+const handleChangeBrightness = (brightness: BrightnessColor) => {
+  dimmerBrightness.value = brightness;
+}
+
+const resetSchedule = () => {
+  cronjob.value = '* * * * * *';
+  dimmerBrightness.value = { ...props.colors.reduce((ctx, color) => ({ ...ctx, [color]: 50 }), {}) };
+}
+
 const handleCreateSchedule = () => {
   console.log('create schedule!');
+  const schedule = { cronjob: cronjob.value, brightness: dimmerBrightness.value, repeat: activeRepeat.value }
+  console.log(schedule);
+  if (clientMQTT.connected && pathPublishSchedule) {
+    clientMQTT.publish(pathPublishSchedule, JSON.stringify(schedule), (err) => {
+      if (!err) {
+        notyf.success('Tạo lập lịch thành công!');
+      }
+      resetSchedule();
+    });
+  }
   emit('close');
 }
 

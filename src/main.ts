@@ -2,8 +2,6 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router';
 
-import { IonicVue } from '@ionic/vue';
-
 /* Core CSS required for Ionic components to work properly */
 // import '@ionic/vue/css/core.css';
 
@@ -33,6 +31,7 @@ import { checkPermission } from '@/permission';
 import gsap from 'gsap';
 import Draggable from 'gsap/Draggable';
 
+import 'notyf/notyf.min.css';
 import './assets/tailwind/style.css'
 import './assets/vue/transition.css'
 import './assets/vue/icons.css'
@@ -55,7 +54,6 @@ document.addEventListener('deviceready', checkPermission);
 (async () => {
 
   const app = createApp(App)
-    .use(IonicVue)
     .use(router)
     .use(pinia)
 

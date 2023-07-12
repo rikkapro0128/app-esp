@@ -1,9 +1,14 @@
 <template>
   <n-space vertical>
-    <span class="font-bold">Thay đổi</span>
-    <n-space vertical v-for="(color, index) in dimmerBrightness.data">
-      <span>Màu: {{ translateColorChannel[props.colors[index]] }}</span>
-      <n-slider v-model:value="color[props.colors[index]].brightness" :step="1" />
+    <n-divider style="margin: 0.4rem 0;" title-placement="left">
+      <span class="font-bold text-lg">Thay đổi</span>
+    </n-divider>
+    <n-space vertical v-for="(color, index) in props.colors">
+      <n-space justify="space-between">
+        <span>Màu: {{ translateColorChannel[color] }}</span>
+        <span>{{ dimmerBrightness[color] }}%</span>
+      </n-space>
+      <n-slider v-model:value="dimmerBrightness[color]" :step="1" />
     </n-space>
   </n-space>
 </template>
@@ -11,13 +16,9 @@
 <script setup lang="ts">
 
 import { reactive, watch } from 'vue';
-import { NSlider, NSpace } from 'naive-ui';
+import { NSlider, NSpace, NDivider } from 'naive-ui';
 
-import { colorChannel } from '@/components/Widget/Dimmer';
-
-type BrightnessColor = {
-  [key in colorChannel]?: number;
-};
+import { colorChannel, BrightnessColor } from '@/components/Widget/Dimmer';
 
 const translateColorChannel = {
   'white': 'trắng',
@@ -34,24 +35,15 @@ const props = defineProps({
   }
 })
 
-const dimmerBrightness = reactive({
-  data: [...props.colors.map(color => ({
-    [color]: {
-      brightness: 50
-    }
-  }))]
-})
+const dimmerBrightness: BrightnessColor = reactive({ ...props.colors.reduce((ctx, color) => ({ ...ctx, [color]: 50 }), {}) })
 
 const emit = defineEmits<{
   (e: 'change-brightness', colorsBrightness: BrightnessColor): void
 }>()
 
-watch(() => dimmerBrightness.data, (payload) => {
-  // payload.forEach(some => console.log({ [Object.keys(some)[0]]: some[Object.keys(some)[0]].brightness }))
-  const colorsResult: BrightnessColor = payload.reduce((ctx, brightness) => ({ ...ctx, [Object.keys(brightness)[0]]: brightness[Object.keys(brightness)[0]].brightness }), {});
-  emit('change-brightness', colorsResult);
-
-}, { deep: true })
+watch(dimmerBrightness, (payload: BrightnessColor) => {
+  emit('change-brightness', payload);
+})
 
 </script>
 

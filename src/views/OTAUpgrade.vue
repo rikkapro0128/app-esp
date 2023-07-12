@@ -48,7 +48,7 @@
 <script setup lang="ts">
 import { NSelect, NSpace, NProgress, useThemeVars, NButton, useDialog } from 'naive-ui';
 import { changeColor } from 'seemly';
-import { ref, onUnmounted, getCurrentInstance } from 'vue';
+import { ref, onUnmounted, getCurrentInstance, onMounted } from 'vue';
 
 import { MqttClient } from 'mqtt/dist/mqtt';
 
@@ -127,55 +127,55 @@ const pathStatus = `/${idDevice}/dimmer/ota/status`;
 
 const clientMQTT = app?.appContext.config.globalProperties.$clientMQTT as MqttClient;
 
-// clientMQTT.on('connect', function () {
-//   console.log('mqtt is connected');
-
-
-
-// })
-
 if (clientMQTT.connected) {
-  clientMQTT.subscribe(pathProcess, () => {
-    console.log('sub path = ', pathProcess);
-  });
-  clientMQTT.subscribe(pathStatus, () => {
-    console.log('sub path = ', pathStatus);
-  });
+
+  clientMQTT.on('message', function (topic, message) {
+    // message is Buffer
+    // console.log({ topic: topic, message: message.toString() })
+
+    if (topic === pathProcess) {
+      const payload: PercentTopic = JSON.parse(message.toString() ?? '');
+      percentUpdated.value = parseFloat(payload.percent.toFixed(1));
+    } else if (topic === pathStatus) {
+      const payload: StatusTopic = JSON.parse(message.toString() ?? '');
+      console.log(payload);
+      if (payload.status_code === StatusUpgrade.UPGRADE_SUCCESSFULLY) {
+        dialog.success({
+          title: 'Thành công',
+          content: `Cập nhật version thiết bị Dimer(${idDevice}) thành công.`,
+          positiveText: 'Đã hiểu',
+        })
+      }
+      else if (payload.status_code === StatusUpgrade.END_FAILURE) {
+        dialog.error({
+          title: 'Lỗi rồi',
+          content: `Hiện server đang không hoạt động hoặc không tìm thấy file.`,
+          positiveText: 'Đã hiểu',
+        })
+      } else if (payload.status_code === StatusUpgrade.FIRMWARE_UPTODATE) {
+        dialog.warning({
+          title: 'Opps',
+          content: `Version của thiết bị hiện đã là mới nhất.`,
+          positiveText: 'Đã hiểu',
+        })
+      }
+      upgrading.value = false;
+    }
+    // clientMQTT.end()
+  })
 }
 
-clientMQTT.on('message', function (topic, message) {
-  // message is Buffer
-  // console.log({ topic: topic, message: message.toString() })
+onMounted(() => {
+  if (clientMQTT.connected) {
+    clientMQTT.subscribe(pathProcess, () => {
+      console.log('sub path = ', pathProcess);
+    });
+    clientMQTT.subscribe(pathStatus, () => {
+      console.log('sub path = ', pathStatus);
+    });
 
-  if (topic === pathProcess) {
-    const payload: PercentTopic = JSON.parse(message.toString() ?? '');
-    percentUpdated.value = parseFloat(payload.percent.toFixed(1));
-  } else if (topic === pathStatus) {
-    const payload: StatusTopic = JSON.parse(message.toString() ?? '');
-    console.log(payload);
-    if (payload.status_code === StatusUpgrade.UPGRADE_SUCCESSFULLY) {
-      dialog.success({
-        title: 'Thành công',
-        content: `Cập nhật version thiết bị Dimer(${idDevice}) thành công.`,
-        positiveText: 'Đã hiểu',
-      })
-    }
-    else if (payload.status_code === StatusUpgrade.END_FAILURE) {
-      dialog.error({
-        title: 'Lỗi rồi',
-        content: `Hiện server đang không hoạt động hoặc không tìm thấy file.`,
-        positiveText: 'Đã hiểu',
-      })
-    } else if (payload.status_code === StatusUpgrade.FIRMWARE_UPTODATE) {
-      dialog.warning({
-        title: 'Opps',
-        content: `Version của thiết bị hiện đã là mới nhất.`,
-        positiveText: 'Đã hiểu',
-      })
-    }
-    upgrading.value = false;
   }
-  // clientMQTT.end()
+
 })
 
 const handleUpgradeFirmware = () => {
@@ -196,7 +196,7 @@ const handleUpgradeFirmware = () => {
 }
 
 onUnmounted(() => {
-  clientMQTT.removeAllListeners('message');
+
   clientMQTT.unsubscribe(pathProcess, () => {
     console.log('unsucribe => ', pathProcess);
   });
