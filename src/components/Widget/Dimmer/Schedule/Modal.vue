@@ -38,7 +38,7 @@ import { ref, getCurrentInstance } from 'vue';
 
 import { NModal, NCard, NButton, NSpace, NCheckbox } from 'naive-ui';
 
-import { MqttClient } from 'mqtt/dist/mqtt';
+import * as mqtt from "mqtt/dist/mqtt.min"
 
 const app = getCurrentInstance();
 const props = defineProps({
@@ -57,7 +57,7 @@ const props = defineProps({
 
 const pathPublishSchedule = props.idDevice ? `/${props.idDevice}/dimmer/write/schedule` : undefined;
 
-const clientMQTT = app?.appContext.config.globalProperties.$clientMQTT as MqttClient;
+const clientMQTT = app?.appContext.config.globalProperties.$clientMQTT as mqtt.MqttClient;
 
 const activeRepeat = ref<boolean>(true);
 const cronjob = ref<string>('* * * * * *');

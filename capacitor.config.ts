@@ -1,3 +1,5 @@
+/// <reference types="@capacitor/splash-screen" />
+
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
@@ -5,11 +7,17 @@ const config: CapacitorConfig = {
   appName: 'Smart Miru',
   webDir: 'dist',
   server: {
-    androidScheme: 'https'
+    androidScheme: 'http'
   },
+  loggingBehavior: 'production',
   plugins: {
     CapacitorHttp: {
       enabled: true,
+    },
+    SplashScreen: {
+      launchShowDuration: 0,
+      launchFadeOutDuration: 0,
+      launchAutoHide: true,
     }
   }
 };

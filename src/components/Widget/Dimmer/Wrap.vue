@@ -11,11 +11,11 @@
 import { PropType, ref, getCurrentInstance, onUnmounted, onMounted } from 'vue';
 import { WidgetType } from '@/components/Widget';
 import { colorChannel, TrackingResponse } from '@/components/Widget/Dimmer';
-import { MqttClient } from 'mqtt/dist/mqtt';
+import * as mqtt from "mqtt/dist/mqtt.min"
 
 const app = getCurrentInstance();
 
-const clientMQTT = app?.appContext.config.globalProperties.$clientMQTT as MqttClient;
+const clientMQTT = app?.appContext.config.globalProperties.$clientMQTT as mqtt.MqttClient;
 
 const props = defineProps({
   type: {

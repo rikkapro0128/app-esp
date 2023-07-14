@@ -1,6 +1,6 @@
-import mqtt from 'mqtt/dist/mqtt';
+import * as mqtt from "mqtt/dist/mqtt.min"
 
-const connectBroker = (): Promise<mqtt.MqttClient> => {
+const connectBroker = (): mqtt.MqttClient => {
 
   const client = mqtt.connect('ws://broker.hivemq.com:8000', {
     path: '/mqtt',
@@ -8,19 +8,7 @@ const connectBroker = (): Promise<mqtt.MqttClient> => {
     protocolVersion: 3
   });
 
-  return new Promise((resolve, reject) => {
-  
-    client.on('connect', () => {
-      console.log('mqtt is connected');
-      resolve(client);
-    })
-
-    client.on('error', (err) => {
-      console.log('mqtt is connect is error: ', err.message);
-      resolve(client);
-    })
-
-  })
+  return client;
 
 }
 

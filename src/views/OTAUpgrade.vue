@@ -50,7 +50,7 @@ import { NSelect, NSpace, NProgress, useThemeVars, NButton, useDialog } from 'na
 import { changeColor } from 'seemly';
 import { ref, onUnmounted, getCurrentInstance, onMounted } from 'vue';
 
-import { MqttClient } from 'mqtt/dist/mqtt';
+import * as mqtt from "mqtt/dist/mqtt.min"
 
 interface PercentTopic {
   percent: number
@@ -125,9 +125,9 @@ let idCLearTimeout: NodeJS.Timeout;
 const pathProcess = `/${idDevice}/dimmer/ota/process`;
 const pathStatus = `/${idDevice}/dimmer/ota/status`;
 
-const clientMQTT = app?.appContext.config.globalProperties.$clientMQTT as MqttClient;
+const clientMQTT = app?.appContext.config.globalProperties.$clientMQTT as mqtt.MqttClient;
 
-if (clientMQTT.connected) {
+if (clientMQTT?.connected) {
 
   clientMQTT.on('message', function (topic, message) {
     // message is Buffer
@@ -166,7 +166,7 @@ if (clientMQTT.connected) {
 }
 
 onMounted(() => {
-  if (clientMQTT.connected) {
+  if (clientMQTT?.connected) {
     clientMQTT.subscribe(pathProcess, () => {
       console.log('sub path = ', pathProcess);
     });

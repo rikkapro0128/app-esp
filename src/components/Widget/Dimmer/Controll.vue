@@ -23,7 +23,7 @@ import gsap from 'gsap';
 
 import { onMounted, ref, onUnmounted, getCurrentInstance, PropType, watch } from 'vue';
 
-import { MqttClient } from 'mqtt/dist/mqtt';
+import * as mqtt from "mqtt/dist/mqtt.min"
 
 import { colorChannel } from '@/components/Widget/Dimmer';
 
@@ -68,15 +68,15 @@ const pathRequestReadBrightness = `/${props.id}/dimmer/read/brightness`;
 
 const pathResponseReadBrightness = `/${props.id}/dimmer/brightness/status`;
 
-const clientMQTT = app?.appContext.config.globalProperties.$clientMQTT as MqttClient;
+const clientMQTT = app?.appContext.config.globalProperties.$clientMQTT as mqtt.MqttClient;
 
 const handleControllPercent = () => {
-  if (clientMQTT.connected) {
+  if (clientMQTT?.connected) {
     clientMQTT.publish(pathControll, JSON.stringify({ [`brightness-${props.color}`]: percentDimmer.value }), { qos: 1 });
   }
 }
 
-if (clientMQTT.connected) {
+if (clientMQTT?.connected) {
   clientMQTT.on('message', function (topic, message) {
     if (topic === pathResponseReadBrightness) {
       const payload: BrightChannelColor = JSON.parse(message.toString() ?? '');
@@ -99,7 +99,7 @@ onMounted(() => {
 
   clientMQTT.publish(pathRequestReadBrightness, JSON.stringify({ [props.color]: true }));
 
-  if (clientMQTT.connected) {
+  if (clientMQTT?.connected) {
     clientMQTT.subscribe(pathResponseReadBrightness, (payload) => {
       console.log('sub path = ', pathResponseReadBrightness);
     });

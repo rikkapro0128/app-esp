@@ -58,7 +58,7 @@ import { NEmpty, NSpin, NSpace, NButton, NEllipsis } from 'naive-ui';
 
 import { ref, getCurrentInstance, onUnmounted, onMounted } from 'vue';
 
-import { MqttClient } from 'mqtt/dist/mqtt';
+import * as mqtt from "mqtt/dist/mqtt.min"
 import cronstrue from 'cronstrue';
 import notyf from '@/notyf';
 
@@ -96,7 +96,7 @@ const pathScheduleJob = props.idDevice ? `/${props.idDevice}/dimmer/schedule/job
 const pathReadSchedule = props.idDevice ? `/${props.idDevice}/dimmer/read/schedule` : undefined;
 const pathRemoveSchedule = props.idDevice ? `/${props.idDevice}/dimmer/remove/schedule` : undefined;
 
-const clientMQTT = app?.appContext.config.globalProperties.$clientMQTT as MqttClient;
+const clientMQTT = app?.appContext.config.globalProperties.$clientMQTT as mqtt.MqttClient;
 
 if (clientMQTT.connected && typeof pathScheduleJob === 'string') {
 

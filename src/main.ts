@@ -1,6 +1,6 @@
-import { createApp } from 'vue'
-import App from './App.vue'
-import router from './router';
+import { createApp } from "vue";
+import App from "./App.vue";
+import router from "./router";
 
 /* Core CSS required for Ionic components to work properly */
 // import '@ionic/vue/css/core.css';
@@ -20,52 +20,52 @@ import router from './router';
 
 /* Theme variables */
 // import './theme/variables.css';
-import { createPinia } from 'pinia'
+import { createPinia } from "pinia";
 
-import connectBroker from '@/protocol/mqtt';
+import connectBroker from "@/protocol/mqtt";
 
-import mqtt from 'mqtt/dist/mqtt';
+import * as mqtt from "mqtt/dist/mqtt.min";
 
-import { checkPermission } from '@/permission';
+import { checkPermission } from "@/permission";
 
-import gsap from 'gsap';
-import Draggable from 'gsap/Draggable';
+import gsap from "gsap";
+import Draggable from "gsap/Draggable";
+import { SplashScreen } from '@capacitor/splash-screen';
 
-import 'notyf/notyf.min.css';
-import './assets/tailwind/style.css'
-import './assets/vue/transition.css'
-import './assets/vue/icons.css'
-import '@flaticon/flaticon-uicons/css/regular/all.css'
+import "notyf/notyf.min.css";
+import "./assets/tailwind/style.css";
+import "./assets/vue/transition.css";
+import "./assets/vue/icons.css";
+import "@flaticon/flaticon-uicons/css/regular/all.css";
 
-declare module 'vue' {
+declare module "vue" {
   interface ComponentCustomProperties {
-    $clientMQTT: mqtt.MqttClient,
+    $clientMQTT: mqtt.MqttClient;
   }
 }
 
-const meta = document.createElement('meta')
-const pinia = createPinia()
+const meta = document.createElement("meta");
+const pinia = createPinia();
 
-meta.name = 'naive-ui-style'
-document.head.appendChild(meta)
+meta.name = "naive-ui-style";
+document.head.appendChild(meta);
 
-document.addEventListener('deviceready', checkPermission);
+document.addEventListener("deviceready", async () => {
 
-(async () => {
-
-  const app = createApp(App)
-    .use(router)
-    .use(pinia)
+  checkPermission();
+  
+  const app = createApp(App).use(router).use(pinia);
 
   try {
-    const clientMQTT = await connectBroker();
+    const clientMQTT = connectBroker();
     app.config.globalProperties.$clientMQTT = clientMQTT;
-  } catch (error) {}
-  
-  gsap.registerPlugin(Draggable);
-    
-  router.isReady().then(() => {
-    app.mount('#app');
-  });
+  } catch (error) {
+    console.error((error as any)?.message);
+  }
 
-})();
+  gsap.registerPlugin(Draggable);
+
+  router.isReady().then(() => {
+    app.mount("#app");
+  });
+});
