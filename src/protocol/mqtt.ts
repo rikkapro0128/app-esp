@@ -1,6 +1,12 @@
 import * as mqtt from "mqtt/dist/mqtt.min"
 
-const connectBroker = (): mqtt.MqttClient => {
+import { App } from 'vue';
+
+import { useCommonStore } from '@/store';
+
+const connectBroker = (app: App<Element>) => {
+
+  const commonStore = useCommonStore();
 
   const client = mqtt.connect('ws://broker.hivemq.com:8000', {
     path: '/mqtt',
@@ -8,7 +14,26 @@ const connectBroker = (): mqtt.MqttClient => {
     protocolVersion: 3
   });
 
-  return client;
+  client.on('connect', () => {
+    app.config.globalProperties.$clientMQTT = client;
+    commonStore.mqttBroker = client;
+  })
+
+  client.on('offline', () => {
+  })
+
+  client.on('reconnect', () => {
+  })
+
+  client.on('disconnect', () => {
+  })
+
+  client.on('error', () => {
+    
+  })
+
+  client.on('close', () => {
+  })
 
 }
 

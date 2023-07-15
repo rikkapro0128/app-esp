@@ -8,14 +8,13 @@
 
 <script setup lang="ts">
 
-import { PropType, ref, getCurrentInstance, onUnmounted, onMounted } from 'vue';
+import { PropType, ref, onBeforeUnmount, onMounted } from 'vue';
 import { WidgetType } from '@/components/Widget';
 import { colorChannel, TrackingResponse } from '@/components/Widget/Dimmer';
-import * as mqtt from "mqtt/dist/mqtt.min"
 
-const app = getCurrentInstance();
+import { useCommonStore } from '@/store'
 
-const clientMQTT = app?.appContext.config.globalProperties.$clientMQTT as mqtt.MqttClient;
+const commonStore = useCommonStore();
 
 const props = defineProps({
   type: {
@@ -48,8 +47,8 @@ const changeColor = () => {
 
 
 
-if (clientMQTT.connected) {
-  clientMQTT.on('message', function (topic, message) {
+if (commonStore.mqttBroker?.connected) {
+  commonStore.mqttBroker.on('message', function (topic, message) {
     console.log(topic);
     if (topic === pathTracking) {
       const payload: TrackingResponse = JSON.parse(message.toString() ?? '');
@@ -65,8 +64,8 @@ if (clientMQTT.connected) {
 
 onMounted(() => {
 
-  if (clientMQTT.connected) {
-    clientMQTT.subscribe(pathTracking, (err) => {
+  if (commonStore.mqttBroker?.connected) {
+    commonStore.mqttBroker.subscribe(pathTracking, (err) => {
       if (!err) {
         console.log('sub path = ', pathTracking);
       }
@@ -74,11 +73,13 @@ onMounted(() => {
   }
 });
 
-onUnmounted(() => {
-
-  clientMQTT.unsubscribe(pathTracking, () => {
-    console.log('unsucribe => ', pathTracking);
-  });
+onBeforeUnmount(() => {
+  if (commonStore.mqttBroker?.connected) {
+    commonStore.mqttBroker.unsubscribe(pathTracking, () => {
+      console.log('unsucribe => ', pathTracking);
+    });
+    commonStore.mqttBroker.removeAllListeners('message');
+  }
 })
 
 </script>

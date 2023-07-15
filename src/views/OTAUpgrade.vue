@@ -48,9 +48,8 @@
 <script setup lang="ts">
 import { NSelect, NSpace, NProgress, useThemeVars, NButton, useDialog } from 'naive-ui';
 import { changeColor } from 'seemly';
-import { ref, onUnmounted, getCurrentInstance, onMounted } from 'vue';
-
-import * as mqtt from "mqtt/dist/mqtt.min"
+import { ref, onBeforeUnmount, onMounted } from 'vue';
+import { useCommonStore } from '@/store'
 
 interface PercentTopic {
   percent: number
@@ -111,7 +110,9 @@ const opionsUpdateVersion = [
 
 const themeVars = useThemeVars();
 const dialog = useDialog();
-const app = getCurrentInstance();
+
+const commonStore = useCommonStore();
+
 const upgrading = ref<boolean>(false);
 
 const percentUpdated = ref(100);
@@ -125,11 +126,9 @@ let idCLearTimeout: NodeJS.Timeout;
 const pathProcess = `/${idDevice}/dimmer/ota/process`;
 const pathStatus = `/${idDevice}/dimmer/ota/status`;
 
-const clientMQTT = app?.appContext.config.globalProperties.$clientMQTT as mqtt.MqttClient;
+if (commonStore.mqttBroker?.connected) {
 
-if (clientMQTT?.connected) {
-
-  clientMQTT.on('message', function (topic, message) {
+  commonStore.mqttBroker.on('message', function (topic, message) {
     // message is Buffer
     // console.log({ topic: topic, message: message.toString() })
 
@@ -161,16 +160,15 @@ if (clientMQTT?.connected) {
       }
       upgrading.value = false;
     }
-    // clientMQTT.end()
   })
 }
 
 onMounted(() => {
-  if (clientMQTT?.connected) {
-    clientMQTT.subscribe(pathProcess, () => {
+  if (commonStore.mqttBroker?.connected) {
+    commonStore.mqttBroker.subscribe(pathProcess, () => {
       console.log('sub path = ', pathProcess);
     });
-    clientMQTT.subscribe(pathStatus, () => {
+    commonStore.mqttBroker.subscribe(pathStatus, () => {
       console.log('sub path = ', pathStatus);
     });
 
@@ -180,13 +178,13 @@ onMounted(() => {
 
 const handleUpgradeFirmware = () => {
 
-  if (clientMQTT.connected && !upgrading.value) {
+  if (commonStore.mqttBroker?.connected && !upgrading.value) {
     upgrading.value = true;
     // do send mqtt update firmware
     // console.log('call');
     const pathUpgrade = `/${idDevice}/dimmer/ota/upgrade`;
     console.log('publish path = ', pathUpgrade);
-    clientMQTT.publish(pathUpgrade, JSON.stringify({ restart: true }), { qos: 1 }, (err) => {
+    commonStore.mqttBroker.publish(pathUpgrade, JSON.stringify({ restart: true }), { qos: 1 }, (err) => {
       if (err) {
         upgrading.value = false;
       }
@@ -195,14 +193,16 @@ const handleUpgradeFirmware = () => {
   }
 }
 
-onUnmounted(() => {
-
-  clientMQTT.unsubscribe(pathProcess, () => {
-    console.log('unsucribe => ', pathProcess);
-  });
-  clientMQTT.unsubscribe(pathStatus, () => {
-    console.log('unsucribe => ', pathStatus);
-  });
+onBeforeUnmount(() => {
+  if (commonStore.mqttBroker?.connected) {
+    commonStore.mqttBroker.unsubscribe(pathProcess, () => {
+      console.log('unsucribe => ', pathProcess);
+    });
+    commonStore.mqttBroker.unsubscribe(pathStatus, () => {
+      console.log('unsucribe => ', pathStatus);
+    });
+    commonStore.mqttBroker.removeAllListeners('message');
+  }
 })
 
 </script>

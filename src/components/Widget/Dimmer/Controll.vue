@@ -21,9 +21,9 @@
 import { Draggable } from 'gsap/Draggable';
 import gsap from 'gsap';
 
-import { onMounted, ref, onUnmounted, getCurrentInstance, PropType, watch } from 'vue';
+import { onMounted, ref, onBeforeUnmount, PropType, watch, inject } from 'vue';
 
-import * as mqtt from "mqtt/dist/mqtt.min"
+import { useCommonStore } from '@/store'
 
 import { colorChannel } from '@/components/Widget/Dimmer';
 
@@ -50,7 +50,7 @@ const props = defineProps({
   }
 })
 
-const app = getCurrentInstance();
+const commonStore = useCommonStore();
 
 const dimmer = ref<HTMLElement | null>(null);
 // const numColor = ref<number>(props.numColor);
@@ -68,16 +68,14 @@ const pathRequestReadBrightness = `/${props.id}/dimmer/read/brightness`;
 
 const pathResponseReadBrightness = `/${props.id}/dimmer/brightness/status`;
 
-const clientMQTT = app?.appContext.config.globalProperties.$clientMQTT as mqtt.MqttClient;
-
 const handleControllPercent = () => {
-  if (clientMQTT?.connected) {
-    clientMQTT.publish(pathControll, JSON.stringify({ [`brightness-${props.color}`]: percentDimmer.value }), { qos: 1 });
+  if (commonStore.mqttBroker?.connected) {
+    commonStore.mqttBroker.publish(pathControll, JSON.stringify({ [`brightness-${props.color}`]: percentDimmer.value }), { qos: 1 });
   }
 }
 
-if (clientMQTT?.connected) {
-  clientMQTT.on('message', function (topic, message) {
+if (commonStore.mqttBroker?.connected) {
+  commonStore.mqttBroker.on('message', function (topic, message) {
     if (topic === pathResponseReadBrightness) {
       const payload: BrightChannelColor = JSON.parse(message.toString() ?? '');
 
@@ -96,13 +94,13 @@ if (clientMQTT?.connected) {
 }
 
 onMounted(() => {
+  if (commonStore.mqttBroker?.connected) {
 
-  clientMQTT.publish(pathRequestReadBrightness, JSON.stringify({ [props.color]: true }));
-
-  if (clientMQTT?.connected) {
-    clientMQTT.subscribe(pathResponseReadBrightness, (payload) => {
+    commonStore.mqttBroker.subscribe(pathResponseReadBrightness, (payload) => {
       console.log('sub path = ', pathResponseReadBrightness);
     });
+
+    commonStore.mqttBroker.publish(pathRequestReadBrightness, JSON.stringify({ [props.color]: true }));
   }
 
   if (dimmer.value) {
@@ -124,15 +122,19 @@ onMounted(() => {
 })
 
 watch(() => props.color, (color) => {
-  clientMQTT.publish(pathRequestReadBrightness, JSON.stringify({ [color]: true }));
+  if (commonStore.mqttBroker?.connected) {
+    commonStore.mqttBroker.publish(pathRequestReadBrightness, JSON.stringify({ [color]: true }));
+  }
 })
 
-onUnmounted(() => {
+onBeforeUnmount(() => {
   if (idTimeoutDebounce) { clearTimeout(idTimeoutDebounce); }
-
-  clientMQTT.unsubscribe(pathResponseReadBrightness, () => {
-    console.log('unsucribe => ', pathResponseReadBrightness);
-  });
+  if (commonStore.mqttBroker?.connected) {
+    commonStore.mqttBroker?.unsubscribe(pathResponseReadBrightness, () => {
+      console.log('unsucribe => ', pathResponseReadBrightness);
+    });
+    commonStore.mqttBroker.removeAllListeners('message');
+  }
 })
 
 </script>

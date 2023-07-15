@@ -34,13 +34,13 @@ import ExecPicker from '@/components/Widget/Dimmer/Schedule/ExecPicker.vue';
 import { colorChannel, BrightnessColor } from '@/components/Widget/Dimmer';
 import notyf from '@/notyf';
 
-import { ref, getCurrentInstance } from 'vue';
+import { ref } from 'vue';
+import { useCommonStore } from '@/store'
 
 import { NModal, NCard, NButton, NSpace, NCheckbox } from 'naive-ui';
 
-import * as mqtt from "mqtt/dist/mqtt.min"
+const commonStore = useCommonStore();
 
-const app = getCurrentInstance();
 const props = defineProps({
   show: {
     type: Boolean,
@@ -56,8 +56,6 @@ const props = defineProps({
 })
 
 const pathPublishSchedule = props.idDevice ? `/${props.idDevice}/dimmer/write/schedule` : undefined;
-
-const clientMQTT = app?.appContext.config.globalProperties.$clientMQTT as mqtt.MqttClient;
 
 const activeRepeat = ref<boolean>(true);
 const cronjob = ref<string>('* * * * * *');
@@ -86,8 +84,8 @@ const handleCreateSchedule = () => {
   console.log('create schedule!');
   const schedule = { cronjob: cronjob.value, brightness: dimmerBrightness.value, repeat: activeRepeat.value }
   console.log(schedule);
-  if (clientMQTT.connected && pathPublishSchedule) {
-    clientMQTT.publish(pathPublishSchedule, JSON.stringify(schedule), (err) => {
+  if (commonStore.mqttBroker?.connected && pathPublishSchedule) {
+    commonStore.mqttBroker.publish(pathPublishSchedule, JSON.stringify(schedule), (err) => {
       if (!err) {
         notyf.success('Tạo lập lịch thành công!');
       }

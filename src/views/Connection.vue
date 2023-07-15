@@ -286,10 +286,8 @@ const checkWifiValid = async () => {
     const statusNetwork = await WifiWizard2.isWifiEnabled() as boolean;
     if (statusNetwork) {
       const ssid = await WifiWizard2.getConnectedSSID() as string;
-      console.log(ssid);
       if (!ssid.toLocaleLowerCase().includes('esp')) {
         const dlWifiEspInvalid = JSON.parse(localStorage.getItem('dl-wifi-esp-invalid') ?? 'true');
-        console.log(dlWifiEspInvalid);
         if (dlWifiEspInvalid) {
           const ctxD = dialog.warning({
             title: 'WiFi Thiết bị không hợp lệ',

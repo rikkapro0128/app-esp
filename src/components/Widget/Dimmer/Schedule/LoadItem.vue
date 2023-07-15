@@ -56,11 +56,12 @@
 <script setup lang="ts">
 import { NEmpty, NSpin, NSpace, NButton, NEllipsis } from 'naive-ui';
 
-import { ref, getCurrentInstance, onUnmounted, onMounted } from 'vue';
+import { ref, onUnmounted, onMounted } from 'vue';
 
-import * as mqtt from "mqtt/dist/mqtt.min"
 import cronstrue from 'cronstrue';
 import notyf from '@/notyf';
+
+import { useCommonStore } from '@/store'
 
 interface ScheduleJob {
   id: string,
@@ -84,7 +85,8 @@ const props = defineProps({
   }
 })
 
-const app = getCurrentInstance();
+const commonStore = useCommonStore();
+
 let signal_received = false;
 
 const stateSchedule = ref<StateSchedule>(StateSchedule.START_LOAD);
@@ -96,11 +98,9 @@ const pathScheduleJob = props.idDevice ? `/${props.idDevice}/dimmer/schedule/job
 const pathReadSchedule = props.idDevice ? `/${props.idDevice}/dimmer/read/schedule` : undefined;
 const pathRemoveSchedule = props.idDevice ? `/${props.idDevice}/dimmer/remove/schedule` : undefined;
 
-const clientMQTT = app?.appContext.config.globalProperties.$clientMQTT as mqtt.MqttClient;
+if (commonStore.mqttBroker?.connected && typeof pathScheduleJob === 'string') {
 
-if (clientMQTT.connected && typeof pathScheduleJob === 'string') {
-
-  clientMQTT.on('message', function (topic, message) {
+  commonStore.mqttBroker.on('message', function (topic, message) {
     if (topic === pathScheduleJob) {
       const payload: ScheduleJob = JSON.parse(message.toString() ?? '');
       console.log(payload);
@@ -130,19 +130,21 @@ if (clientMQTT.connected && typeof pathScheduleJob === 'string') {
 }
 
 const removeSchedule = (id: string) => {
-  if (typeof pathRemoveSchedule === 'string') {
-    clientMQTT.publish(pathRemoveSchedule, JSON.stringify({ id: id }));
-    scheduleJobs.value = scheduleJobs.value.filter(schedule => schedule.id !== id);
-    if (scheduleJobs.value.length === 0) {
-      stateSchedule.value = StateSchedule.NO_SCHEDULE;
+  if (commonStore.mqttBroker?.connected) {
+    if (typeof pathRemoveSchedule === 'string') {
+      commonStore.mqttBroker.publish(pathRemoveSchedule, JSON.stringify({ id: id }));
+      scheduleJobs.value = scheduleJobs.value.filter(schedule => schedule.id !== id);
+      if (scheduleJobs.value.length === 0) {
+        stateSchedule.value = StateSchedule.NO_SCHEDULE;
+      }
+      notyf.success(`Đã xoá lập lịch với id: ${id}.`);
     }
-    notyf.success(`Đã xoá lập lịch với id: ${id}.`);
   }
 }
 
 onMounted(() => {
-  if (clientMQTT.connected && typeof pathScheduleJob === 'string') {
-    clientMQTT.subscribe(pathScheduleJob, (payload) => {
+  if (commonStore.mqttBroker?.connected && typeof pathScheduleJob === 'string') {
+    commonStore.mqttBroker.subscribe(pathScheduleJob, (payload) => {
       console.log('sub path = ', pathScheduleJob);
     });
   }
@@ -150,17 +152,21 @@ onMounted(() => {
 })
 
 onMounted(() => {
-  if (typeof pathReadSchedule === 'string') {
-    clientMQTT.publish(pathReadSchedule, 'start');
+  if (commonStore.mqttBroker?.connected) {
+    if (typeof pathReadSchedule === 'string') {
+      commonStore.mqttBroker.publish(pathReadSchedule, 'start');
+    }
   }
 })
 
 onUnmounted(() => {
-
-  if (typeof pathScheduleJob === 'string') {
-    clientMQTT.unsubscribe(pathScheduleJob, () => {
-      console.log('unsucribe => ', pathScheduleJob);
-    });
+  if (commonStore.mqttBroker?.connected) {
+    if (typeof pathScheduleJob === 'string') {
+      commonStore.mqttBroker.unsubscribe(pathScheduleJob, () => {
+        console.log('unsucribe => ', pathScheduleJob);
+      });
+    }
+    commonStore.mqttBroker.removeAllListeners('message');
   }
 })
 

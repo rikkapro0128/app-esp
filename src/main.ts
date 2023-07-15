@@ -30,7 +30,7 @@ import { checkPermission } from "@/permission";
 
 import gsap from "gsap";
 import Draggable from "gsap/Draggable";
-import { SplashScreen } from '@capacitor/splash-screen';
+// import { SplashScreen } from '@capacitor/splash-screen';
 
 import "notyf/notyf.min.css";
 import "./assets/tailwind/style.css";
@@ -57,8 +57,7 @@ document.addEventListener("deviceready", async () => {
   const app = createApp(App).use(router).use(pinia);
 
   try {
-    const clientMQTT = connectBroker();
-    app.config.globalProperties.$clientMQTT = clientMQTT;
+    connectBroker(app);
   } catch (error) {
     console.error((error as any)?.message);
   }
