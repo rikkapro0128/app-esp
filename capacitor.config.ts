@@ -10,6 +10,9 @@ const config: CapacitorConfig = {
     androidScheme: 'http'
   },
   loggingBehavior: 'production',
+  android: {
+    webContentsDebuggingEnabled: true,
+  },
   plugins: {
     CapacitorHttp: {
       enabled: true,

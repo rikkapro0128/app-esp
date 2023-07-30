@@ -17,22 +17,28 @@ const connectBroker = (app: App<Element>) => {
   client.on('connect', () => {
     app.config.globalProperties.$clientMQTT = client;
     commonStore.mqttBroker = client;
+    console.log('connect');
   })
 
   client.on('offline', () => {
+    console.log('offline');
   })
 
   client.on('reconnect', () => {
+    console.log('reconnect');
   })
 
   client.on('disconnect', () => {
+    console.log('disconnect');
   })
 
   client.on('error', () => {
+    console.log('error');
     
   })
 
   client.on('close', () => {
+    console.log('close');
   })
 
 }

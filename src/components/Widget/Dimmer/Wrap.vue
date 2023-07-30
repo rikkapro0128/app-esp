@@ -46,7 +46,6 @@ const changeColor = () => {
 }
 
 
-
 if (commonStore.mqttBroker?.connected) {
   commonStore.mqttBroker.on('message', function (topic, message) {
     console.log(topic);

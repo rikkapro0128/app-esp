@@ -56,11 +56,7 @@ document.addEventListener("deviceready", async () => {
   
   const app = createApp(App).use(router).use(pinia);
 
-  try {
-    connectBroker(app);
-  } catch (error) {
-    console.error((error as any)?.message);
-  }
+  connectBroker(app);
 
   gsap.registerPlugin(Draggable);
 
