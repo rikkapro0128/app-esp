@@ -1,5 +1,5 @@
 # Ứng dụng build Giao diện dành cho thiết bị phần cứng IOT Dimmer giúp điều chỉnh độ sáng đèn một cách thông minh
-=> Bạn có thể tải về để test tại đây [(Tải xuống)](/apk/chat-gpt.apk)
+=> Bạn có thể tải về để test tại đây [(Tải xuống)](/apk/app-dimmer.apk)
 ## Giao diện điều khiển
 <p align="center">
   <img style="width: 20%; margin: 0 auto;" src="md/pictures/controll.jpg" />
