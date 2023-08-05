@@ -74,31 +74,31 @@ const handleControllPercent = () => {
   }
 }
 
-if (commonStore.mqttBroker?.connected) {
-  commonStore.mqttBroker.on('message', function (topic, message) {
-    if (topic === pathResponseReadBrightness) {
-      const payload: BrightChannelColor = JSON.parse(message.toString() ?? '');
 
-      if (dimmer.value) {
-        if (Object.keys(payload)[0] === props.color) {
-          gsap.to(dimmer.value, {
-            rotate: Math.round((payload[props.color] ?? 0) * maxRotation / 100), onUpdate: function () {
-              percentDimmer.value = Math.round((Math.round(parseInt(((dimmer.value?._gsap.rotation ?? '') as string).split('deg')[0])) - minRotation) * 100 / (maxRotation - minRotation));
-            },
-          })
-        }
+commonStore.mqttBroker?.on('message', function (topic, message) {
+  if (topic === pathResponseReadBrightness) {
+    const payload: BrightChannelColor = JSON.parse(message.toString() ?? '');
 
+    if (dimmer.value) {
+      if (Object.keys(payload)[0] === props.color) {
+        gsap.to(dimmer.value, {
+          rotate: Math.round((payload[props.color] ?? 0) * maxRotation / 100), onUpdate: function () {
+            percentDimmer.value = Math.round((Math.round(parseInt(((dimmer.value?._gsap.rotation ?? '') as string).split('deg')[0])) - minRotation) * 100 / (maxRotation - minRotation));
+          },
+        })
       }
+
     }
-  })
-}
+  }
+})
 
 onMounted(() => {
-  if (commonStore.mqttBroker?.connected) {
 
-    commonStore.mqttBroker.subscribe(pathResponseReadBrightness, (payload) => {
-      console.log('sub path = ', pathResponseReadBrightness);
-    });
+  commonStore.mqttBroker?.subscribe(pathResponseReadBrightness, (payload) => {
+    console.log('sub path = ', pathResponseReadBrightness);
+  });
+
+  if (commonStore.mqttBroker?.connected) {
 
     commonStore.mqttBroker.publish(pathRequestReadBrightness, JSON.stringify({ [props.color]: true }));
   }
@@ -129,12 +129,10 @@ watch(() => props.color, (color) => {
 
 onBeforeUnmount(() => {
   if (idTimeoutDebounce) { clearTimeout(idTimeoutDebounce); }
-  if (commonStore.mqttBroker?.connected) {
-    commonStore.mqttBroker?.unsubscribe(pathResponseReadBrightness, () => {
-      console.log('unsucribe => ', pathResponseReadBrightness);
-    });
-    commonStore.mqttBroker.removeAllListeners('message');
-  }
+  commonStore.mqttBroker?.unsubscribe(pathResponseReadBrightness, () => {
+    console.log('unsucribe => ', pathResponseReadBrightness);
+  });
+  commonStore.mqttBroker?.removeAllListeners('message');
 })
 
 </script>

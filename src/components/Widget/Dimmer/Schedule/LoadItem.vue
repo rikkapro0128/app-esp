@@ -98,76 +98,71 @@ const pathScheduleJob = props.idDevice ? `/${props.idDevice}/dimmer/schedule/job
 const pathReadSchedule = props.idDevice ? `/${props.idDevice}/dimmer/read/schedule` : undefined;
 const pathRemoveSchedule = props.idDevice ? `/${props.idDevice}/dimmer/remove/schedule` : undefined;
 
-if (commonStore.mqttBroker?.connected && typeof pathScheduleJob === 'string') {
-
-  commonStore.mqttBroker.on('message', function (topic, message) {
-    if (topic === pathScheduleJob) {
-      const payload: ScheduleJob = JSON.parse(message.toString() ?? '');
-      console.log(payload);
-      if (payload?.status === 'END') {
-        signal_received = false;
-        stateSchedule.value = StateSchedule.END_LOAD;
-      }
-      if (signal_received) {
-        let cronstr;
-        try {
-          cronstr = cronstrue.toString(payload.cron, { use24HourTimeFormat: true });
-        } catch (error) {
-          cronstr = 'không hợp lệ';
-        }
-        scheduleJobs.value = [...scheduleJobs.value, { ...payload, cronExpresssion: cronstr }];
-      }
-      if (payload?.status === 'START') {
-        signal_received = true;
-        stateSchedule.value = StateSchedule.START_LOAD;
-        scheduleJobs.value = [];
-      } else if (payload?.status === 'JOB_ZERO') {
-        signal_received = false;
-        stateSchedule.value = StateSchedule.NO_SCHEDULE;
-      }
+const ctx_listener = (topic: string, message: any) => {
+  if (topic === pathScheduleJob) {
+    const payload: ScheduleJob = JSON.parse(message.toString() ?? '');
+    console.log(payload);
+    if (payload?.status === 'END') {
+      signal_received = false;
+      stateSchedule.value = StateSchedule.END_LOAD;
     }
-  })
-}
-
-const removeSchedule = (id: string) => {
-  if (commonStore.mqttBroker?.connected) {
-    if (typeof pathRemoveSchedule === 'string') {
-      commonStore.mqttBroker.publish(pathRemoveSchedule, JSON.stringify({ id: id }));
-      scheduleJobs.value = scheduleJobs.value.filter(schedule => schedule.id !== id);
-      if (scheduleJobs.value.length === 0) {
-        stateSchedule.value = StateSchedule.NO_SCHEDULE;
+    if (signal_received) {
+      let cronstr;
+      try {
+        cronstr = cronstrue.toString(payload.cron, { use24HourTimeFormat: true });
+      } catch (error) {
+        cronstr = 'không hợp lệ';
       }
-      notyf.success(`Đã xoá lập lịch với id: ${id}.`);
+      scheduleJobs.value = [...scheduleJobs.value, { ...payload, cronExpresssion: cronstr }];
+    }
+    if (payload?.status === 'START') {
+      signal_received = true;
+      stateSchedule.value = StateSchedule.START_LOAD;
+      scheduleJobs.value = [];
+    } else if (payload?.status === 'JOB_ZERO') {
+      signal_received = false;
+      stateSchedule.value = StateSchedule.NO_SCHEDULE;
     }
   }
 }
 
+if (typeof pathScheduleJob === 'string') {
+
+  commonStore.mqttBroker?.on('message', ctx_listener);
+}
+
+const removeSchedule = (id: string) => {
+  if (typeof pathRemoveSchedule === 'string') {
+    commonStore.mqttBroker?.publish(pathRemoveSchedule, JSON.stringify({ id: id }));
+    scheduleJobs.value = scheduleJobs.value.filter(schedule => schedule.id !== id);
+    if (scheduleJobs.value.length === 0) {
+      stateSchedule.value = StateSchedule.NO_SCHEDULE;
+    }
+    notyf.success(`Đã xoá lập lịch với id: ${id}.`);
+  }
+}
+
 onMounted(() => {
-  if (commonStore.mqttBroker?.connected && typeof pathScheduleJob === 'string') {
-    commonStore.mqttBroker.subscribe(pathScheduleJob, (payload) => {
+  if (typeof pathScheduleJob === 'string') {
+    commonStore.mqttBroker?.subscribe(pathScheduleJob, (payload) => {
       console.log('sub path = ', pathScheduleJob);
     });
   }
 
-})
 
-onMounted(() => {
-  if (commonStore.mqttBroker?.connected) {
-    if (typeof pathReadSchedule === 'string') {
-      commonStore.mqttBroker.publish(pathReadSchedule, 'start');
-    }
+  if (typeof pathReadSchedule === 'string') {
+    commonStore.mqttBroker?.publish(pathReadSchedule, 'start');
   }
+
 })
 
 onUnmounted(() => {
-  if (commonStore.mqttBroker?.connected) {
-    if (typeof pathScheduleJob === 'string') {
-      commonStore.mqttBroker.unsubscribe(pathScheduleJob, () => {
-        console.log('unsucribe => ', pathScheduleJob);
-      });
-    }
-    commonStore.mqttBroker.removeAllListeners('message');
+  if (typeof pathScheduleJob === 'string') {
+    commonStore.mqttBroker?.unsubscribe(pathScheduleJob, () => {
+      console.log('unsucribe => ', pathScheduleJob);
+    });
   }
+  commonStore.mqttBroker?.removeListener('message', ctx_listener);
 })
 
 </script>

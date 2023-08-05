@@ -14,9 +14,10 @@ const connectBroker = (app: App<Element>) => {
     protocolVersion: 3
   });
 
+  commonStore.mqttBroker = client;
+  app.config.globalProperties.$clientMQTT = client;
+
   client.on('connect', () => {
-    app.config.globalProperties.$clientMQTT = client;
-    commonStore.mqttBroker = client;
     console.log('connect');
   })
 

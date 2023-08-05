@@ -21,6 +21,7 @@ import router from "./router";
 /* Theme variables */
 // import './theme/variables.css';
 import { createPinia } from "pinia";
+import { Capacitor } from "@capacitor/core";
 
 import connectBroker from "@/protocol/mqtt";
 
@@ -50,10 +51,9 @@ const pinia = createPinia();
 meta.name = "naive-ui-style";
 document.head.appendChild(meta);
 
-document.addEventListener("deviceready", async () => {
-
+const mountContext = async () => {
   checkPermission();
-  
+
   const app = createApp(App).use(router).use(pinia);
 
   connectBroker(app);
@@ -63,4 +63,10 @@ document.addEventListener("deviceready", async () => {
   router.isReady().then(() => {
     app.mount("#app");
   });
-});
+};
+
+if (Capacitor.getPlatform() === "web") {
+  document.addEventListener("DOMContentLoaded", mountContext);
+} else {
+  document.addEventListener("deviceready", mountContext);
+}

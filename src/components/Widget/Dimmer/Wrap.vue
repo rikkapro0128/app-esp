@@ -45,40 +45,33 @@ const changeColor = () => {
   color.value = props.colors[countColorPresent.value];
 }
 
+commonStore.mqttBroker?.on('message', function (topic, message) {
+  console.log(topic);
+  if (topic === pathTracking) {
+    const payload: TrackingResponse = JSON.parse(message.toString() ?? '');
 
-if (commonStore.mqttBroker?.connected) {
-  commonStore.mqttBroker.on('message', function (topic, message) {
-    console.log(topic);
-    if (topic === pathTracking) {
-      const payload: TrackingResponse = JSON.parse(message.toString() ?? '');
-
-      status.value = true;
-      if (idTrackingTimeout) { clearTimeout(idTrackingTimeout) }
-      idTrackingTimeout = setTimeout(() => {
-        status.value = false;
-      }, poolingTracking * 1000);
-    }
-  })
-}
+    status.value = true;
+    if (idTrackingTimeout) { clearTimeout(idTrackingTimeout) }
+    idTrackingTimeout = setTimeout(() => {
+      status.value = false;
+    }, poolingTracking * 1000);
+  }
+})
 
 onMounted(() => {
 
-  if (commonStore.mqttBroker?.connected) {
-    commonStore.mqttBroker.subscribe(pathTracking, (err) => {
-      if (!err) {
-        console.log('sub path = ', pathTracking);
-      }
-    });
-  }
+  commonStore.mqttBroker?.subscribe(pathTracking, (err) => {
+    if (!err) {
+      console.log('sub path = ', pathTracking);
+    }
+  });
 });
 
 onBeforeUnmount(() => {
-  if (commonStore.mqttBroker?.connected) {
-    commonStore.mqttBroker.unsubscribe(pathTracking, () => {
-      console.log('unsucribe => ', pathTracking);
-    });
-    commonStore.mqttBroker.removeAllListeners('message');
-  }
+  commonStore.mqttBroker?.unsubscribe(pathTracking, () => {
+    console.log('unsucribe => ', pathTracking);
+  });
+  commonStore.mqttBroker?.removeAllListeners('message');
 })
 
 </script>
