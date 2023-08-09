@@ -1,4 +1,4 @@
-package io.ionic.starter;
+package io.miru.dimmer;
 
 import android.content.Intent;
 import android.os.Bundle;

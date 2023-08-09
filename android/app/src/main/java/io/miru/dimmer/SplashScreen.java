@@ -1,4 +1,4 @@
-package io.ionic.starter;
+package io.miru.dimmer;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -10,6 +10,8 @@ import androidx.annotation.NonNull;
 import android.animation.Animator;
 
 import com.airbnb.lottie.LottieAnimationView;
+
+import io.miru.dimmer.MainActivity;
 
 public class SplashScreen extends AppCompatActivity {
     LottieAnimationView animationSplash;
