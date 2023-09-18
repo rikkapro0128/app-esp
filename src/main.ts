@@ -23,11 +23,12 @@ import router from "./router";
 import { createPinia } from "pinia";
 import { Capacitor } from "@capacitor/core";
 
-import connectBroker from "@/protocol/mqtt";
+import connectBroker, { connectSocketServer } from "@/protocol/mqtt";
 
 import * as mqtt from "mqtt/dist/mqtt.min";
 
 import { checkPermission } from "@/permission";
+import { checkServiceDNS } from "@/mdns-discover";
 
 import gsap from "gsap";
 import Draggable from "gsap/Draggable";
@@ -57,6 +58,11 @@ const mountContext = async () => {
   const app = createApp(App).use(router).use(pinia);
 
   connectBroker(app);
+  checkServiceDNS(async (ipDiscover: string | undefined) => {
+    if(typeof ipDiscover === 'string') {
+      connectSocketServer(ipDiscover);
+    }
+  });
 
   gsap.registerPlugin(Draggable);
 

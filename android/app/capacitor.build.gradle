@@ -16,7 +16,9 @@ dependencies {
     implementation project(':capacitor-network')
     implementation project(':capacitor-splash-screen')
     implementation project(':capacitor-status-bar')
-
+    implementation project(':miaz-capacitor-websocket')
+    implementation project(':capacitor-zeroconf')
+    implementation "org.jmdns:jmdns:3.5.5"
 }
 
 

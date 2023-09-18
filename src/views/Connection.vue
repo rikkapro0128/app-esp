@@ -110,6 +110,12 @@
             <n-form-item label="Password" path="password">
               <n-input v-model:value="formValue.password" placeholder="Input Password" />
             </n-form-item>
+            <n-checkbox v-model:checked="configMesh">
+              Cấu hình thiết bị mesh
+            </n-checkbox>
+            <n-form-item v-if="configMesh" label="White List" path="whitelist">
+              <n-select v-model:value="formValue.whiteList" multiple :options="wifis.filter(wifi => wifi.ssid.includes('SKYT_')).map(wifi => ({ label: wifi.ssid, value: wifi.bssid }))" />
+            </n-form-item>
           </n-form>
         </transition>
         <template #footer>
@@ -139,7 +145,7 @@ import { OpenNativeSettings } from '@awesome-cordova-plugins/open-native-setting
 
 import { onBeforeUnmount, onMounted, ref, watch, h } from 'vue';
 import { WifiIcon, XCircleIcon, ExclamationTriangleIcon, SignalSlashIcon, CheckCircleIcon, CheckBadgeIcon } from '@heroicons/vue/24/solid';
-import { NModal, NCard, NButton, NForm, NFormItem, NInput, NSpin, NSpace, type FormRules, type FormItemRule, FormInst, useDialog, NCheckbox } from 'naive-ui';
+import { NModal, NCard, NButton, NForm, NFormItem, NInput, NSpin, NSpace, type FormRules, type FormItemRule, FormInst, useDialog, NCheckbox, NSelect } from 'naive-ui';
 
 export interface WifiType {
   ssid: string;
@@ -160,6 +166,12 @@ export interface WifiInfo {
 interface WifiInfoFlat extends WifiInfo {
   rssiPercent: number,
   rssiRaw: number,
+}
+
+interface WifiOptions {
+  label: string, // this is SSID value
+  value: string, // this is MAC value
+  disabled?: boolean,
 }
 
 enum StateConnection {
@@ -191,6 +203,7 @@ const wifis = ref<Array<WifiInfoFlat> | []>([]);
 
 const pickWifi = ref<WifiInfoFlat | undefined>(undefined);
 // const debug = ref<string>('');
+const configMesh = ref<boolean>(false);
 const searchWifi = ref<boolean>(true);
 const reload = ref<boolean>(false);
 const loadingSendConfig = ref<boolean>(false);
@@ -198,11 +211,13 @@ const modalPickWifi = ref<boolean>(false);
 const ssidInvalid = ref<boolean>(false);
 const connectionState = ref<StateConnection>(StateConnection.UNKNOWN);
 const formRef = ref<FormInst | null>(null)
+const whiteList = ref<string[] | null>(null)
 
 const formValue = ref({
   ssid: '',
   password: '',
   mac: '',
+  whiteList: [],
 });
 
 const rules: FormRules = {
@@ -247,7 +262,7 @@ const scanWifiList = async () => {
       const statusNetwork = await WifiWizard2.isWifiEnabled() as boolean;
       if (statusNetwork) {
         const ssid = await WifiWizard2.getConnectedSSID() as string;
-        if (!ssid.toLocaleLowerCase().includes('esp')) {
+        if (!ssid.includes('SKYT_')) {
           ssidInvalid.value = true;
           if (wifis.value.length > 0) { wifis.value = [] }
         } else {
@@ -286,7 +301,7 @@ const checkWifiValid = async () => {
     const statusNetwork = await WifiWizard2.isWifiEnabled() as boolean;
     if (statusNetwork) {
       const ssid = await WifiWizard2.getConnectedSSID() as string;
-      if (!ssid.toLocaleLowerCase().includes('esp')) {
+      if (!ssid.includes('SKYT_')) {
         const dlWifiEspInvalid = JSON.parse(localStorage.getItem('dl-wifi-esp-invalid') ?? 'true');
         if (dlWifiEspInvalid) {
           const ctxD = dialog.warning({
@@ -329,7 +344,7 @@ App.addListener('appStateChange', async ({ isActive }) => {
     const statusNetwork = await WifiWizard2.isWifiEnabled() as boolean;
     if (statusNetwork) {
       const ssid = await WifiWizard2.getConnectedSSID() as string;
-      if (ssid.toLocaleLowerCase().includes('esp')) {
+      if (ssid.includes('SKYT_')) {
         clearInterval(intervalId);
         searchWifi.value = true;
         await scanWifiList();
@@ -376,7 +391,7 @@ const handleConnectWifi = async (e: MouseEvent) => {
     } else {
       loadingSendConfig.value = true;
       try {
-        const response = await CapacitorHttp.post({ url: `http://${import.meta.env.VITE_SERVER_FETCH}/api/v1/wifi/connect/ap`, data: { ssid: formValue.value.ssid, bssid: formValue.value.mac, password: formValue.value.password }, headers: { 'Content-Type': 'application/json' } });
+        const response = await CapacitorHttp.post({ url: `http://${import.meta.env.VITE_SERVER_FETCH}/api/v1/wifi/connect/ap`, data: { ssid: formValue.value.ssid, bssid: formValue.value.mac, password: formValue.value.password, whiteList: formValue.value.whiteList }, headers: { 'Content-Type': 'application/json' } });
         const { message } = response.data as ResponseConfigWifi;
         if (message === StateConfigWifi.WIFI_CONFIG_SUCCESSFULLY) {
           connectionState.value = StateConnection.SUCCESS;

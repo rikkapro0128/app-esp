@@ -22,6 +22,13 @@
   dependencies:
     "@types/cordova" latest
 
+"@awesome-cordova-plugins/dns@^6.4.0":
+  version "6.4.0"
+  resolved "https://registry.yarnpkg.com/@awesome-cordova-plugins/dns/-/dns-6.4.0.tgz#1f11049b59517106a39110cf1633afcca960005f"
+  integrity sha512-mZFT9HK/cf+kHSk2C13usycccwoZ2CrfyxsYuS+ZdD4BX/KE7ZBveyVWwjlwsAKgQnZO/qocgYdgkLz8xMGvFA==
+  dependencies:
+    "@types/cordova" latest
+
 "@awesome-cordova-plugins/open-native-settings@^6.3.0":
   version "6.3.0"
   resolved "https://registry.npmjs.org/@awesome-cordova-plugins/open-native-settings/-/open-native-settings-6.3.0.tgz"
@@ -1056,10 +1063,40 @@
     tslib "^2.1.0"
     xml2js "^0.4.23"
 
+"@capacitor/cli@^5.3.0":
+  version "5.3.0"
+  resolved "https://registry.yarnpkg.com/@capacitor/cli/-/cli-5.3.0.tgz#6ee30148a8a6f9317056c8d9d1591ac04783f088"
+  integrity sha512-ku23HPqUHUnSgo/SyEWxVviEAxb4ieWvAVMI3KfrrBoinAhTOvNSZwT346rIpxZ9Xj3Qp41UjdIz0ME+DYwhfA==
+  dependencies:
+    "@ionic/cli-framework-output" "^2.2.5"
+    "@ionic/utils-fs" "^3.1.6"
+    "@ionic/utils-subprocess" "^2.1.11"
+    "@ionic/utils-terminal" "^2.3.3"
+    commander "^9.3.0"
+    debug "^4.3.4"
+    env-paths "^2.2.0"
+    kleur "^4.1.4"
+    native-run "^1.7.2"
+    open "^8.4.0"
+    plist "^3.0.5"
+    prompts "^2.4.2"
+    rimraf "^4.4.1"
+    semver "^7.3.7"
+    tar "^6.1.11"
+    tslib "^2.4.0"
+    xml2js "^0.5.0"
+
 "@capacitor/core@5.0.4":
   version "5.0.4"
   resolved "https://registry.npmjs.org/@capacitor/core/-/core-5.0.4.tgz"
   integrity sha512-BFvziz9jM87pLHW2sXPNIzwrdmI5mAP0tBsBHgXoCO2+wVdpvIMYCpcst5BuTULaMz5JBFZZ6g6nqwgfs+SMCA==
+  dependencies:
+    tslib "^2.1.0"
+
+"@capacitor/core@^5.3.0":
+  version "5.3.0"
+  resolved "https://registry.yarnpkg.com/@capacitor/core/-/core-5.3.0.tgz#07ae34746f1e62ebe6a1078509d29c2465efa445"
+  integrity sha512-mvhh1yJtcUTZ0hUUriBKKpxq47hn75bjxH3tYPRgAFu1z3gowCg+OtG4Rce3W5gr5fSfCjQgOSL0Vp7k9hPUWw==
   dependencies:
     tslib "^2.1.0"
 
@@ -1348,6 +1385,20 @@
   resolved "https://registry.npmjs.org/@hutson/parse-repository-url/-/parse-repository-url-3.0.2.tgz"
   integrity sha512-H9XAx3hc0BQHY6l+IFSWHDySypcXsvsuLhgYLUGywmJ5pswRVQJUHpOsobnLYp2ZUaUlKiKDrgWWhosOwAEM8Q==
 
+"@ionic-native/core@^5.36.0":
+  version "5.36.0"
+  resolved "https://registry.yarnpkg.com/@ionic-native/core/-/core-5.36.0.tgz#712c40a530b119b0039e8d16cb577899f50541d4"
+  integrity sha512-lOrkktadlKYbYf1LrDyAtsu1JnQ0oCCdkOU7iHQ8oXnNOkMwobFfD2m62F1CoOr0u9LIkpYnZSPjng8lZbmbNw==
+  dependencies:
+    "@types/cordova" latest
+
+"@ionic-native/zeroconf@^5.36.0":
+  version "5.36.0"
+  resolved "https://registry.yarnpkg.com/@ionic-native/zeroconf/-/zeroconf-5.36.0.tgz#dc39a3947661d69e7e2301c8ff884a89578219ad"
+  integrity sha512-Ns/0AVNJCzCQ5KAKf3mvfpm+7iha+3NSxmqeMOq6F+Tl+wNUi1WLJpFTvFfnjSVlTXhSoCgYnnkw2vP5HcvUcQ==
+  dependencies:
+    "@types/cordova" latest
+
 "@ionic/cli-framework-output@^2.2.1", "@ionic/cli-framework-output@^2.2.5":
   version "2.2.6"
   resolved "https://registry.npmjs.org/@ionic/cli-framework-output/-/cli-framework-output-2.2.6.tgz"
@@ -1513,6 +1564,14 @@
   version "3.4.0"
   resolved "https://registry.npmjs.org/@juggle/resize-observer/-/resize-observer-3.4.0.tgz"
   integrity sha512-dfLbk+PwWvFzSxwk3n5ySL0hfBog779o8h68wK/7/APo/7cgyWp5jcXockbxdk5kFRkbeXWm4Fbi9FrdN381sA==
+
+"@miaz/capacitor-websocket@^0.6.0":
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/@miaz/capacitor-websocket/-/capacitor-websocket-0.6.0.tgz#f2cd5035c021529737f4fae101046c2ef75f843e"
+  integrity sha512-x1QBWlazlOr9bw4NkCXjKNN4a4dHCJQrV9G49OrrSbkZIl3HWtQ+H9kehAomWC2+Bje9PP7aN/2GBPsKKEDFfw==
+  dependencies:
+    "@capacitor/cli" "^5.3.0"
+    "@capacitor/core" "^5.3.0"
 
 "@nodelib/fs.scandir@2.1.5":
   version "2.1.5"
@@ -1897,6 +1956,11 @@
   dependencies:
     "@typescript-eslint/types" "5.59.8"
     eslint-visitor-keys "^3.3.0"
+
+"@vendus/sockets-for-cordova@^1.7.2":
+  version "1.7.2"
+  resolved "https://registry.yarnpkg.com/@vendus/sockets-for-cordova/-/sockets-for-cordova-1.7.2.tgz#53b71bf2debafb5a69e1b5967ed20716932a11d6"
+  integrity sha512-1ZWRjFBq1L2nTgkaPuPIq9MgZSjTFmTmeMoOFtyX6ZNe4ogp1L3WAZeH0mDG4yoXny7ozRkr3dWWyADXHU4HKA==
 
 "@vitejs/plugin-legacy@^4.0.2":
   version "4.0.4"
@@ -2843,6 +2907,11 @@ caniuse-lite@^1.0.30001464, caniuse-lite@^1.0.30001489:
   resolved "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001494.tgz"
   integrity sha512-sY2B5Qyl46ZzfYDegrl8GBCzdawSLT4ThM9b9F+aDYUrAG2zCOyMbd2Tq34mS1g4ZKBfjRlzOohQMxx28x6wJg==
 
+capacitor-zeroconf@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/capacitor-zeroconf/-/capacitor-zeroconf-2.0.0.tgz#af5df3aba85b8756202db0d3eefc229439bd9f07"
+  integrity sha512-8DGTr/D+KQjjuCuwHv8SKi8idkTPyQGlU2KfIWjXO6atflROJRrbe79f8U8FdcLQfjdA5TeN2AOErmFhLCPyYg==
+
 caseless@~0.12.0:
   version "0.12.0"
   resolved "https://registry.npmjs.org/caseless/-/caseless-0.12.0.tgz"
@@ -3301,10 +3370,20 @@ cordova-open-native-settings@^1.5.5:
   resolved "https://registry.npmjs.org/cordova-open-native-settings/-/cordova-open-native-settings-1.5.5.tgz"
   integrity sha512-t3we7dUTUamuxVMl/nE6RBNqEyTtUuxvtjXI/BrevuoBIl2nI9GJpTvD9witJkpzf0isCv3zMuiLd9tP+2+LVw==
 
+cordova-plugin-dns@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/cordova-plugin-dns/-/cordova-plugin-dns-1.0.2.tgz#4ffc01d3b3c0e879fa9e4921edf22c6f6f306671"
+  integrity sha512-NQVyzL3M1AdIfh5PNl3vecMoEHZ5JiWiW6waLb4YZODw1DX907Uo/Kx1HiFnfN5WB32btnWVI1o78OjLpu1KNQ==
+
 cordova-plugin-wifiwizard2@^3.1.1:
   version "3.1.1"
   resolved "https://registry.npmjs.org/cordova-plugin-wifiwizard2/-/cordova-plugin-wifiwizard2-3.1.1.tgz"
   integrity sha512-Vd4aYUAxCTR6+zhhSOToWi67wT4Vycq4lYB4HnnxFWxrL3ewuKshq9eLxrrwIHwPvPI4u4g06+5jO9PnwEiKOw==
+
+cordova-plugin-zeroconf@^1.4.2:
+  version "1.4.2"
+  resolved "https://registry.yarnpkg.com/cordova-plugin-zeroconf/-/cordova-plugin-zeroconf-1.4.2.tgz#0d8a7de4b2d7932149a57fb9cd37dee8366ff450"
+  integrity sha512-l/ETv/oCq8mPQoYk+qIxFoMwRB7IFxpEQSjsU8V5PLAWQY/OnaFb1Th3IcqQhWMy8+63YfjhyElz1tEqwZUlxA==
 
 core-js-compat@^3.30.1, core-js-compat@^3.30.2:
   version "3.30.2"

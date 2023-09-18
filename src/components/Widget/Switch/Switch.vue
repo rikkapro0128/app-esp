@@ -17,10 +17,15 @@ interface Props {
 
 const props = defineProps<Props>();
 
+const emit = defineEmits<{
+  (e: 'controll', value: boolean): void
+}>()
+
 const touch = ref<boolean>(false);
 
 const onTouch = async () => {
   touch.value = !touch.value
+  emit('controll', touch.value);
 }
 
 </script>

@@ -4,6 +4,7 @@ import Connection from "@/views/Connection.vue";
 import DeviceInfo from "@/views/DeviceInfo.vue";
 import OTAUpgrade from "@/views/OTAUpgrade.vue";
 import ControllDevice from "@/views/Controll.vue";
+import MeshControllTest from "@/views/MeshControllTest.vue";
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -22,6 +23,14 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       requireInternet: true,
     },
+  },
+  {
+    path: "/mesh-controll",
+    name: "mesh-controll",
+    meta: {
+      requireInternet: true,
+    },
+    component: MeshControllTest,
   },
   {
     path: "/device-info",
