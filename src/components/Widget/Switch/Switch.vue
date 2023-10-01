@@ -9,10 +9,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 
 interface Props {
   name: string,
+  state: boolean,
 }
 
 const props = defineProps<Props>();
@@ -21,7 +22,11 @@ const emit = defineEmits<{
   (e: 'controll', value: boolean): void
 }>()
 
-const touch = ref<boolean>(false);
+const touch = ref<boolean>(props.state);
+
+watch(props, (value) => {
+  touch.value = value.state;
+})
 
 const onTouch = async () => {
   touch.value = !touch.value

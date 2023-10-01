@@ -7,12 +7,12 @@ export type TypeConfig = 'config';
 
 export type PacketType = TypeControll | TypeCron | TypeConfig; // this is type of packet will be send
 
-interface Touch2Props {
+interface TouchProps {
   position: number, // 1, 2, 3, 4
   state: boolean,
 }
 
-interface PacketControll<T extends Touch2Props> {
+interface PacketControll<T extends TouchProps> {
   pType: TypeControll,
   dType: WidgetType,
   value: T,

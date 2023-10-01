@@ -18,11 +18,17 @@
 <script setup lang="ts">
 import { NButton, NSpace } from "naive-ui";
 
+interface StateSwitchProps {
+  position: number,
+  state: boolean,
+}
+
 export interface NodeMeshProps {
   macAddress: string;
   ipAddress: string;
   port: number;
   deviceType: string;
+  value: Array<StateSwitchProps>
 }
 
 export interface ControllProps {
