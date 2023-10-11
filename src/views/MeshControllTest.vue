@@ -34,22 +34,12 @@ import { ref, watch, onMounted, reactive } from "vue";
 
 import SwitchGroup, { GroupControllProps } from '@/components/Widget/Switch/Group.vue';
 
-import { PacketProps, TouchProps, PacketControll, TypeControll, WidgetType, PacketType } from '@/components/Widget';
+import { PacketProps, TouchProps, PacketControll, TypeControll, WidgetType, PacketType, MessageSocketProps } from '@/components/Widget';
 
 interface ResponseNode {
   nodes: Array<NodeMeshProps>,
   message: string,
 }
-
-interface MessageSocketProps {
-  target: string,
-  payload: {
-    dType: WidgetType,
-    pType: PacketType,
-    position?: number,
-    state?: boolean,
-  }
-};
 
 const nodes = reactive<{ value: Array<NodeMeshProps> }>({ value: [] });
 const refreshing = ref<boolean>(false);

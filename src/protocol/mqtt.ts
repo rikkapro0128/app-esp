@@ -58,12 +58,14 @@ const connectSocketServer = (hostname: string) => {
 
 const startWebsocket = (hostname: string, cb: (ctx: WebSocket) => void) => {
   let ws = new WebSocket(`ws://${hostname}/ws`);
+  const commonStore = useCommonStore();
 
   cb(ws);
 
   // event occur when socket is connected
   ws.onopen = function (event) {
     console.log("Kết nối đã được thiết lập");
+    commonStore.statusWs = true;
   };
 
   // event occur when socket recieved message
@@ -79,6 +81,7 @@ const startWebsocket = (hostname: string, cb: (ctx: WebSocket) => void) => {
       console.log("Đang kết nối lại...");
       startWebsocket(hostname, cb);
     }, 3000);
+    commonStore.statusWs = false;
   };
 
   ws.onerror = function (err) {

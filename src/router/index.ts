@@ -3,6 +3,7 @@ import { RouteRecordRaw } from "vue-router";
 import Connection from "@/views/Connection.vue";
 import DeviceInfo from "@/views/DeviceInfo.vue";
 import OTAUpgrade from "@/views/OTAUpgrade.vue";
+import MeshOTAUpgrade from "@/views/MeshOTA.vue";
 import ControllDevice from "@/views/Controll.vue";
 import MeshControllTest from "@/views/MeshControllTest.vue";
 
@@ -23,6 +24,11 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       requireInternet: true,
     },
+  },
+  {
+    path: "/mesh-ota-upgrade",
+    name: "mesh-ota-upgrade",
+    component: MeshOTAUpgrade,
   },
   {
     path: "/mesh-controll",

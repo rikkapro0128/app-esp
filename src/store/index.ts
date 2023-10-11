@@ -6,6 +6,7 @@ interface StateProps {
   mqttBroker: mqtt.Client | undefined,
   wsClient: WebSocket | undefined,
   ipMeshRoot: string | undefined,
+  statusWs: boolean,
 }
 
 export const useCommonStore = defineStore("common", {
@@ -13,6 +14,7 @@ export const useCommonStore = defineStore("common", {
     mqttBroker: undefined,
     wsClient: undefined,
     ipMeshRoot: undefined,
+    statusWs: false
   }),
   getters: {},
   actions: {},
