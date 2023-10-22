@@ -1,7 +1,7 @@
 <template>
   <div class="bg-white p-4 shadow-sm rounded-sm flex justify-between">
     <div class="flex-1">
-      <p><b>MAC</b>: {{ props.nodeValue.macAddress }}</p>
+      <p><b>MAC</b>: {{ props.nodeValue.target }}</p>
       <p><b>IP</b>: {{ props.nodeValue.ipAddress }}</p>
       <p><b>PORT</b>: {{ props.nodeValue.port }}</p>
     </div>
@@ -24,10 +24,11 @@ interface StateSwitchProps {
 }
 
 export interface NodeMeshProps {
-  macAddress: string;
+  target: string;
   ipAddress: string;
   port: number;
   deviceType: string;
+  ramSize?: number;
   value: Array<StateSwitchProps>
 }
 

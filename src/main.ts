@@ -22,6 +22,8 @@ import router from "./router";
 // import './theme/variables.css';
 import { createPinia } from "pinia";
 import { Capacitor } from "@capacitor/core";
+import { GlobalEvents } from 'vue-global-events';
+import mitt from 'mitt';
 
 import connectBroker, { connectSocketServer } from "@/protocol/mqtt";
 
@@ -48,6 +50,7 @@ declare module "vue" {
 
 const meta = document.createElement("meta");
 const pinia = createPinia();
+const emitter = mitt();
 
 meta.name = "naive-ui-style";
 document.head.appendChild(meta);
@@ -56,6 +59,10 @@ const mountContext = async () => {
   checkPermission();
 
   const app = createApp(App).use(router).use(pinia);
+
+  // register globally
+app.component('GlobalEvents', GlobalEvents);
+app.config.globalProperties.emitter = emitter;
 
   connectBroker(app);
   checkServiceDNS(async (ipDiscover: string | undefined) => {

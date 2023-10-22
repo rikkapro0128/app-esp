@@ -4,22 +4,20 @@
       <template #header>
         <div class="flex items-center">
           <i style="line-height: 0;" class="fi fi-rr-calendar-plus mr-2"></i>
-          <span>Tạo lập lịch</span>
+          <span>Tạo bộ hẹn giờ</span>
         </div>
       </template>
       <n-space vertical>
-        <cron-picker @change="handleChangeCronJob" />
+        <n-time-picker :default-value="new Date().getTime()" @update-value="handleConfirm" :actions="null" input-readonly
+          :status="statePicker ? 'success' : 'error'" />
         <exec-picker :d-type="props.dType" @change="handleChangeExecControll" :defailt-value="payloadControll" />
-        <n-checkbox v-model:checked="activeRepeat">
-          cho phép lặp lại
-        </n-checkbox>
       </n-space>
       <template #footer>
         <n-space justify="end">
           <n-button @click="() => $emit('close')">
             Huỷ
           </n-button>
-          <n-button @click="handleCreateSchedule" :loading="creatingSchedule" type="success">Xác nhận
+          <n-button @click="handleCreateSchedule" :loading="creatingCountDown" type="success">Xác nhận
           </n-button>
         </n-space>
       </template>
@@ -28,21 +26,16 @@
 </template>
 
 <script setup lang="ts">
-import CronPicker from '@/components/Widget/Dimmer/Schedule/CronPicker.vue';
 import ExecPicker from '@/components/Widget/Dimmer/Schedule/ExecPicker.vue';
+import { NModal, NCard, NButton, NSpace, NCheckbox, NTimePicker } from 'naive-ui';
 
-// import { colorChannel, BrightnessColor } from '@/components/Widget/Dimmer';
-import { LoadType, WidgetType, PickerTouch, PacketProps, PacketControll, TouchProps, TypeSchedule } from '@/components/Widget';
 import { storeToRefs } from 'pinia'
+import { useCommonStore } from '@/store'
+import { ref, onUnmounted } from 'vue';
 
 import notyf from '@/notyf';
 
-import { ref, onUnmounted } from 'vue';
-import { useCommonStore } from '@/store'
-
-import { NModal, NCard, NButton, NSpace, NCheckbox } from 'naive-ui';
-
-const { ipMeshRoot, wsClient } = storeToRefs(useCommonStore());
+import { LoadType, WidgetType, PickerTouch, PacketProps, PacketControll, TouchProps, TypeSchedule } from '@/components/Widget';
 
 const props = defineProps<{
   show: boolean,
@@ -51,39 +44,31 @@ const props = defineProps<{
   dType?: WidgetType,
 }>();
 
-const pathPublishSchedule = props.idDevice ? `/${props.idDevice}/dimmer/write/schedule` : undefined;
-
-const activeRepeat = ref<boolean>(true);
-const cronjob = ref<string>('* * * * * *');
-
 const emit = defineEmits<{
   (e: 'close'): void
-}>()
+}>();
 
-const creatingSchedule = ref<boolean>(false);
+const { ipMeshRoot, wsClient } = storeToRefs(useCommonStore());
+
 const payloadControll = ref<PickerTouch>({
   mode: 1,
   state: true
 });
 
-const handleChangeCronJob = (job: string) => {
-  cronjob.value = job;
-}
-
-const resetSchedule = () => {
-  cronjob.value = '* * * * * *';
-}
+const statePicker = ref<boolean>(false);
+const secondPicker = ref<number>(0);
+const creatingCountDown = ref<boolean>(false);
 
 const handleCreateSchedule = () => {
+  if (secondPicker == 0) { return }
   if (props.loadFrom === 'ws') {
     const packet: PacketProps<PacketControll<TouchProps>> = {
       target: props.idDevice as string,
       payload: {
-        pType: 'schedule',
+        pType: 'countdown',
         dType: props.dType,
         pAction: 'CREATE',
-        expression: cronjob.value,
-        loop: activeRepeat.value,
+        timestamp: secondPicker.value,
         ...payloadControll.value,
       }
     };
@@ -91,9 +76,20 @@ const handleCreateSchedule = () => {
     if (wsClient.value) {
       wsClient.value.send(JSON.stringify(packet));
     }
-    // console.log('create schedule!');
-    resetSchedule();
     emit('close');
+  }
+}
+
+const handleConfirm = (value: number | null) => {
+  const timePresent = Math.round(new Date().getTime() / 1000);
+  const timePicker = value / 1000;
+
+  if (timePicker - timePresent <= 0) {
+    notyf.error('Vui lòng chọn thời gian lớn hơn thời gian hiện tại!');
+    statePicker.value = false;
+  } else {
+    statePicker.value = true;
+    secondPicker.value = Math.round(timePicker - timePresent);
   }
 }
 
@@ -103,4 +99,4 @@ const handleChangeExecControll = (payload: PickerTouch) => {
 
 </script>
 
-<style scoped></style>
+<style lang="scss" scoped></style>

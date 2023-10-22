@@ -15,7 +15,13 @@
 </template>
 
 <script setup lang="ts">
+import { getCurrentInstance } from 'vue'
+
 import { NDialogProvider } from 'naive-ui';
+import { Emitter, EventType } from 'mitt';
+
+const app = getCurrentInstance();
+const emitter = app?.appContext.config.globalProperties.emitter as Emitter<Record<EventType, unknown>>;
 
 import NavigateCenter from '@/components/NavigateCenter.vue';
 import ValidateWifi from '@/components/ValidateWifi.vue'

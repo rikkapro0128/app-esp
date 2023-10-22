@@ -5653,6 +5653,11 @@ minizlib@^2.1.1:
     minipass "^3.0.0"
     yallist "^4.0.0"
 
+mitt@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/mitt/-/mitt-3.0.1.tgz#ea36cf0cc30403601ae074c8f77b7092cdab36d1"
+  integrity sha512-vKivATfr97l2/QBCYAkXYDbrIWPM2IIKEl7YPhjCvKlG3kE2gm+uBo6nEXK3M5/Ffh/FLpKExzOQ3JJoJGFKBw==
+
 mkdirp-classic@^0.5.2, mkdirp-classic@^0.5.3:
   version "0.5.3"
   resolved "https://registry.npmjs.org/mkdirp-classic/-/mkdirp-classic-0.5.3.tgz"
@@ -7981,6 +7986,13 @@ vue-eslint-parser@^9.1.1, vue-eslint-parser@^9.3.0:
     esquery "^1.4.0"
     lodash "^4.17.21"
     semver "^7.3.6"
+
+vue-global-events@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/vue-global-events/-/vue-global-events-3.0.1.tgz#e04b8cfd9b9803441fe18e0ee23c58f2881150d3"
+  integrity sha512-9S7S3bG0XDBnpm2DJSSjpx6xIX/YIleycpnvmRRYSdiMltnzRfJQ8uVB3QX5eCLkmiv/Udg9UjO2wwpTO5LDvQ==
+  dependencies:
+    pkg-types "^1.0.3"
 
 vue-router@^4.1.6:
   version "4.2.2"

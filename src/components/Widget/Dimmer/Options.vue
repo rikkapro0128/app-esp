@@ -39,7 +39,7 @@
               <span>tạo mới</span>
             </n-button>
           </n-space>
-          <load-schedule :id-device="props.idDevice" />
+          <load-schedule :id-device="(props.idDevice as string)" :load-from="'mqtt'" />
         </div>
       </n-drawer-content>
     </n-drawer>

@@ -59,7 +59,7 @@
 import { CapacitorHttp } from '@capacitor/core';
 import { NSelect, NSpace, NProgress, useThemeVars, NButton, useDialog, SelectOption } from 'naive-ui';
 import { changeColor } from 'seemly';
-import { ref, reactive, onBeforeUnmount, onMounted, watch } from 'vue';
+import { ref, reactive, onBeforeUnmount, onMounted, watch, onUnmounted } from 'vue';
 import { storeToRefs } from 'pinia'
 import { useCommonStore } from '@/store';
 
@@ -121,6 +121,11 @@ const versions = [
     typeDevice: 'touch_4',
     version: '0.0.3',
   },
+  {
+    path: 'touch_4_version_0_0_4.bin',
+    typeDevice: 'touch_4',
+    version: '0.0.4',
+  },
 ]
 
 const versionsOptions = [
@@ -142,6 +147,11 @@ const versionsOptions = [
   {
     label: "version 0.0.3",
     value: 'touch_4_version_0_0_3.bin',
+    disabled: false,
+  },
+  {
+    label: "version 0.0.4",
+    value: 'touch_4_version_0_0_4.bin',
     disabled: false,
   },
 ]
@@ -180,29 +190,6 @@ const getNodes = async (ip: string | undefined) => {
   }
 }
 
-const upgrade = async () => {
-  if (!downloadInfo.processing) {
-    downloadInfo.percent = 0;
-    upgradeInfo.percent = 0;
-    // const response = await CapacitorHttp.post({ url: , webFetchExtra: { body:  } });
-    const response = await fetch(`http://${ipMeshRoot.value}/api/v1/mesh/ota`, {
-      body: JSON.stringify({ 'url': `${hostDownload}/${selectVersionOTA.value}` }),
-      method: 'POST',
-      redirect: 'follow',
-      headers: {
-        'Content-Type': 'application/json',
-      }
-    })
-    const payload: { message: string } = await response.json();
-    // const payload: { message: string } = response.data;
-    if (payload.message === 'PAYLOAD_OTA_RECEIVED') {
-      notyf.success('Đã nhận dữ liệu đang tiến hành tải xuống!');
-      downloadInfo.processing = true;
-      upgradeInfo.processing = true;
-    }
-  }
-}
-
 const onMessage = (event: MessageEvent<any>) => {
   const payload: MessageSocketProps = JSON.parse(typeof event.data === 'string' ? event.data : '');
 
@@ -231,10 +218,42 @@ const onMessage = (event: MessageEvent<any>) => {
   }
 }
 
+const upgrade = async () => {
+
+  if (wsClient.value) {
+    if (wsClient.value.readyState === wsClient.value.OPEN) {
+      wsClient.value.removeEventListener('message', onMessage);
+      wsClient.value.addEventListener('message', onMessage);
+    }
+  }
+
+  // console.log(selectNodes.value);
+  if (!downloadInfo.processing) {
+    downloadInfo.percent = 0;
+    upgradeInfo.percent = 0;
+    // const response = await CapacitorHttp.post({ url: , webFetchExtra: { body:  } });
+    const response = await fetch(`http://${ipMeshRoot.value}/api/v1/mesh/ota`, {
+      body: JSON.stringify({ 'url': `${hostDownload}/${selectVersionOTA.value}`, targets: selectNodes.value }),
+      method: 'POST',
+      redirect: 'follow',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    })
+    const payload: { message: string } = await response.json();
+    // const payload: { message: string } = response.data;
+    if (payload.message === 'PAYLOAD_OTA_RECEIVED') {
+      notyf.success('Đã nhận dữ liệu đang tiến hành tải xuống!');
+      downloadInfo.processing = true;
+      upgradeInfo.processing = true;
+    }
+  }
+}
+
 getNodes(ipMeshRoot.value);
 
 watch([nodes, selectDeviceOTA], () => {
-  nodesOptions.value = nodes.value.filter(node => node.deviceType === selectDeviceOTA.value).map((node) => ({ label: node.macAddress, value: node.macAddress }));
+  nodesOptions.value = nodes.value.filter(node => node.deviceType === selectDeviceOTA.value).map((node) => ({ label: node.target, value: node.target }));
 })
 
 watch(ipMeshRoot, (ip) => {
@@ -245,13 +264,10 @@ watch(nodesOptions, (newOptions) => {
   selectNodes.value = newOptions.map(option => option.value);
 })
 
-watch(statusWs, (status) => {
-  console.log(status);
-  if (status) {
-    if (wsClient.value) {
-      if (wsClient.value.readyState === wsClient.value.OPEN) {
-        wsClient.value.addEventListener('message', onMessage);
-      }
+onUnmounted(() => {
+  if (wsClient.value) {
+    if (wsClient.value.readyState === wsClient.value.OPEN) {
+      wsClient.value.removeEventListener('message', onMessage);
     }
   }
 })
