@@ -21,7 +21,7 @@
           <i style="line-height: 0;" class="fi fi-rr-code-compare text-xl mr-2"></i>
           <span>Phiên bản hệ thống</span>
         </p>
-        <n-select v-model:value="selectVersionOTA" :options="versionsOptions" placement="bottom" />
+        <n-select v-model:value="selectVersionOTA" :options="otaOptions" placement="bottom" />
       </n-space>
       <n-space vertical>
         <p class="text-lg flex items-center">
@@ -42,7 +42,7 @@
             :rail-color="changeColor(themeVars.successColor, { alpha: 0.2 })" :percentage="upgradeInfo.percent"
             :indicator-text-color="themeVars.successColor" :height="24" :processing="upgradeInfo.processing" />
           <n-space justify="end">
-            <n-button :disabled="true">
+            <n-button @click="cancelUpgrade">
               Huỷ
             </n-button>
             <n-button @click="upgrade" :loading="downloadInfo.processing || upgradeInfo.processing" type="success">Nâng
@@ -61,13 +61,16 @@ import { NSelect, NSpace, NProgress, useThemeVars, NButton, useDialog, SelectOpt
 import { changeColor } from 'seemly';
 import { ref, reactive, onBeforeUnmount, onMounted, watch, onUnmounted } from 'vue';
 import { storeToRefs } from 'pinia'
-import { useCommonStore } from '@/store';
+import { useCommonStore, useNodeStore, useMeshOTAStore } from '@/store';
 
 import notyf from '@/notyf';
 
 import { NodeProps, MessageSocketProps } from '@/components/Widget';
 
 const { ipMeshRoot, wsClient, statusWs } = storeToRefs(useCommonStore());
+const { value: nodesStore } = storeToRefs(useNodeStore());
+const { downloadInfo, upgradeInfo } = storeToRefs(useMeshOTAStore());
+const { startOTA } = useMeshOTAStore();
 const themeVars = useThemeVars();
 
 const opionsDevices = [
@@ -131,27 +134,22 @@ const versions = [
 const versionsOptions = [
   {
     label: "version 0.0.0",
+    value: 'touch_1_version_0_0_0.bin',
+    disabled: false,
+  },
+  {
+    label: "version 0.0.0",
+    value: 'touch_2_version_0_0_0.bin',
+    disabled: false,
+  },
+  {
+    label: "version 0.0.0",
+    value: 'touch_3_version_0_0_0.bin',
+    disabled: false,
+  },
+  {
+    label: "version 0.0.0",
     value: 'touch_4_version_0_0_0.bin',
-    disabled: false,
-  },
-  {
-    label: "version 0.0.1",
-    value: 'touch_4_version_0_0_1.bin',
-    disabled: false,
-  },
-  {
-    label: "version 0.0.2",
-    value: 'touch_4_version_0_0_2.bin',
-    disabled: false,
-  },
-  {
-    label: "version 0.0.3",
-    value: 'touch_4_version_0_0_3.bin',
-    disabled: false,
-  },
-  {
-    label: "version 0.0.4",
-    value: 'touch_4_version_0_0_4.bin',
     disabled: false,
   },
 ]
@@ -159,116 +157,57 @@ const versionsOptions = [
 const nodes = reactive<{ value: Array<NodeProps> | [] }>({ value: [] });
 const nodesOptions = ref<Array<SelectOption> | []>([]);
 
+const otaOptions = ref(versionsOptions);
 const selectDeviceOTA = ref(opionsDevices[4].value);
-const selectVersionOTA = ref(versionsOptions[versionsOptions.length - 1].value);
+const selectVersionOTA = ref(null);
 const selectNodes = ref<Array<any>>([]);
-const downloadInfo = reactive<{
-  processing: boolean,
-  percent: number,
-}>({
-  processing: false,
-  percent: 100
-});
-const upgradeInfo = reactive<{
-  processing: boolean,
-  percent: number,
-}>({
-  processing: false,
-  percent: 100
-});
 
-const getNodes = async (ip: string | undefined) => {
-  if (typeof ip === 'string') {
-
-    const response = await CapacitorHttp.get({ url: `http://${ip}/api/v1/mesh/topology` });
-    const payload: { nodes: Array<NodeProps>, message: string } = response.data;
-
-    if (payload.message === 'FIND_NODE_SUCCESSFULLY') {
-      console.log(payload.nodes);
-      nodes.value = payload.nodes;
-    }
-  }
-}
-
-const onMessage = (event: MessageEvent<any>) => {
-  const payload: MessageSocketProps = JSON.parse(typeof event.data === 'string' ? event.data : '');
-
-  console.log(payload);
-
-  if (payload) {
-    if (payload.payload.pType === 'ota') {
-      if (payload.payload.status === 'downloading') {
-        if (payload.payload?.present && payload.payload?.total) {
-          downloadInfo.percent = ((payload.payload.present / payload.payload.total * 100).toFixed(1) as unknown as number) * 1;
-          if (downloadInfo.percent === 100) {
-            downloadInfo.processing = false;
-          }
-        }
-      } else if (payload.payload.status === 'upgrading') {
-        if (payload.payload.value) {
-          // console.log(upgradeInfo.percent);
-          upgradeInfo.percent = payload.payload.value;
-          if (payload.payload.value === 100) { upgradeInfo.processing = false; }
-        }
-      } else if (payload.payload.status === 'done') {
-        notyf.success(`Có ${payload.payload.numSuccessed} thiết bị cập nhật xong, sẽ khởi động sau ${payload.payload.restartAfter}s!`);
-        upgradeInfo.processing = false;
-      }
-    }
-  }
-}
 
 const upgrade = async () => {
-
-  if (wsClient.value) {
-    if (wsClient.value.readyState === wsClient.value.OPEN) {
-      wsClient.value.removeEventListener('message', onMessage);
-      wsClient.value.addEventListener('message', onMessage);
-    }
+  if (typeof selectVersionOTA.value !== 'string' || selectNodes.value.length === 0) {
+    notyf.error('Các tuỳ chọn vẫn chưa đầy đủ!');
+    return;
   }
-
   // console.log(selectNodes.value);
-  if (!downloadInfo.processing) {
-    downloadInfo.percent = 0;
-    upgradeInfo.percent = 0;
-    // const response = await CapacitorHttp.post({ url: , webFetchExtra: { body:  } });
-    const response = await fetch(`http://${ipMeshRoot.value}/api/v1/mesh/ota`, {
-      body: JSON.stringify({ 'url': `${hostDownload}/${selectVersionOTA.value}`, targets: selectNodes.value }),
-      method: 'POST',
-      redirect: 'follow',
-      headers: {
-        'Content-Type': 'application/json',
-      }
-    })
-    const payload: { message: string } = await response.json();
-    // const payload: { message: string } = response.data;
-    if (payload.message === 'PAYLOAD_OTA_RECEIVED') {
-      notyf.success('Đã nhận dữ liệu đang tiến hành tải xuống!');
-      downloadInfo.processing = true;
-      upgradeInfo.processing = true;
-    }
+  const state = await startOTA(`http://${ipMeshRoot.value}/api/v1/mesh/ota`, `${hostDownload}/${selectVersionOTA.value}`, selectNodes.value);
+  if (state) {
+    notyf.success('Đã nhận dữ liệu đang tiến hành tải xuống!');
   }
 }
 
-getNodes(ipMeshRoot.value);
+const cancelUpgrade = () => {
+  downloadInfo.value.processing = false;
+  upgradeInfo.value.processing = false;
+  downloadInfo.value.percent = 100;
+  upgradeInfo.value.percent = 100;
+}
 
-watch([nodes, selectDeviceOTA], () => {
-  nodesOptions.value = nodes.value.filter(node => node.deviceType === selectDeviceOTA.value).map((node) => ({ label: node.target, value: node.target }));
-})
+const nodeOptionsChange = () => {
+  nodesOptions.value = nodesStore.value.filter(node => node.info.dType === selectDeviceOTA.value).map((node) => ({ label: `${node.target} - ${node.info.appVersion}`, value: node.target }));
+  otaOptions.value = versionsOptions.filter(version => version.value.includes(selectDeviceOTA.value));
+}
 
-watch(ipMeshRoot, (ip) => {
-  getNodes(ip);
-})
+const selectOtionsChange = () => {
+  selectNodes.value = nodesOptions.value.map(option => option.value);
+}
 
-watch(nodesOptions, (newOptions) => {
-  selectNodes.value = newOptions.map(option => option.value);
-})
+nodeOptionsChange();
+selectOtionsChange();
 
-onUnmounted(() => {
-  if (wsClient.value) {
-    if (wsClient.value.readyState === wsClient.value.OPEN) {
-      wsClient.value.removeEventListener('message', onMessage);
-    }
+watch(otaOptions, (options) => {
+  if (options.length === 0) {
+    selectVersionOTA.value = null;
+  }
+});
+
+watch([nodesStore, selectDeviceOTA], nodeOptionsChange);
+
+watch(nodesOptions, selectOtionsChange);
+
+watch(wsClient, () => {
+  if (wsClient.value?.readyState !== WebSocket.OPEN) {
+    notyf.error('Lỗi nâng cấp do bị gián đoạn hoặc mất kết nối!');
+    cancelUpgrade();
   }
 })
 

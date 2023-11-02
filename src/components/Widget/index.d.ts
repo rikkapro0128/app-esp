@@ -9,33 +9,53 @@ export type WidgetType =
   | "light_dimmer";
 
 export type TypeControll = "controll";
+export type TypeInfoNode = "info_node";
 export type TypeCron = "cron";
 export type TypeConfig = "config";
 export type TypeOTA = "ota";
 export type TypeCountdown = "countdown";
 export type TypeSchedule = "schedule";
 export type TypeTimeStamp = "timestamp";
+export type TypeNodeEnter = "node_enter";
+export type TypeNodeOuter = "node_outer";
+
+export type TypeTouchPadState = "touchpad_state";
 
 export type TypeMenu = "schedule" | "countdown";
 export type LoadType = "ws" | "mqtt";
 export type PacketType =
   | TypeControll
+  | TypeInfoNode
   | TypeCron
   | TypeConfig
   | TypeOTA
   | TypeSchedule
-  | TypeCountdown | TypeTimeStamp; // this is type of packet will be send
-export type PacketAction = "READ" | "CREATE" | "UPDATE" | "DELETE"; // this is type of packet will be send
+  | TypeCountdown
+  | TypeTimeStamp
+  | TypeNodeEnter
+  | TypeNodeOuter
+  | TypeTouchPadState; // this is type of packet will be send
+export type PacketAction = "READ" | "CREATE" | "UPDATE" | "DELETE" | "NOTIFY"; // this is type of packet will be send
 
 interface TouchProps {
   position: number; // 1, 2, 3, 4
   state: boolean;
+}
+export interface ResponseNode {
+  nodes: Array<string>;
+  message: string;
 }
 
 interface PacketControll<T extends TouchProps> {
   pType: TypeControll;
   dType: WidgetType;
   value: T;
+}
+
+export interface MessageRequireProps {
+  pType: TypeControll;
+  dType: WidgetType;
+  pAction: PacketAction;
 }
 
 export type PickerTouch = {
@@ -82,6 +102,7 @@ export interface CountdownProps {
   state?: boolean | number;
   position?: boolean | number;
   id: string;
+  createAt: number;
 }
 
 interface MessageSocketProps {
@@ -105,7 +126,7 @@ interface MessageSocketProps {
     numUnfinished?: number;
     timeDone?: number;
     restartAfter?: number;
-    value?: number;
+    value?: number | Array<TouchProps>;
     total?: number;
     present?: number;
     createAt?: number;

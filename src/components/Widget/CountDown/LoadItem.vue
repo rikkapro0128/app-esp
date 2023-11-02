@@ -99,8 +99,7 @@ const { ipMeshRoot, wsClient } = storeToRefs(useCommonStore());
 const stateCountDown = ref<StateCountDown>(StateCountDown.START_LOAD);
 
 const countdowns = ref<Array<CountdownProps> | []>([]);
-const timePresentOnRootDevice = ref<number>(); // unit - seconds 
-const timeCountOnRootDevice = ref<number>(); // unit - seconds 
+const timePresentOnRootDevice = ref<number>(0); // unit - seconds 
 
 const onMessage = (event: MessageEvent<any>) => {
   const { target, payload }: MessageSocketProps = JSON.parse(typeof event.data === 'string' ? event.data : '');
@@ -110,37 +109,36 @@ const onMessage = (event: MessageEvent<any>) => {
   }
 
   if (payload) {
-    const { dType, pAction, pType, countdown, id, timestamp, mode, state, position, createAt } = payload;
+    const { dType, pAction, pType, countdown, id, timestamp, mode, state, position, createAt, message } = payload;
     /* handle via action type =)) */
-    if (dType === props.dType) {
-      if (pType === 'countdown') {
-        if (pAction === 'READ') {
-          if (countdown) {
-            countdowns.value = countdown as Array<CountdownProps>;
-            if (countdown.length === 0) {
-              stateCountDown.value = StateCountDown.NO_COUNTDOWN;
-            } else {
-              stateCountDown.value = StateCountDown.END_LOAD;
-            }
+    if (pType === 'countdown') {
+      if (message === 'COUNTDOWN_READ_OK') {
+        if (countdown) {
+          countdowns.value = countdown as Array<CountdownProps>;
+          if (countdown.length === 0) {
+            stateCountDown.value = StateCountDown.NO_COUNTDOWN;
+          } else {
+            stateCountDown.value = StateCountDown.END_LOAD;
           }
-        } else if (pAction === 'DELETE') {
-          if (id) {
-            notyf.success(`Đã xoá bộ hẹn giờ với id: ${id}.`);
-            countdowns.value = countdowns.value.filter(countdown => countdown.id != id);
-            if (countdowns.length) {
-              stateCountDown.value = StateCountDown.NO_COUNTDOWN;
-            }
-          }
-        } else if (pAction === 'CREATE') {
-          notyf.success(`Tạo bộ hẹn giờ thành công - chạy sau ${timestamp}s!`);
-          const tmpCountDown = { id, timestamp, mode, state, createAt };
-          countdowns.value = [...countdowns.value, mode ? { ...tmpCountDown } : { ...tmpCountDown, position }]
         }
-      } else if (pType === 'timestamp') {
-        if (pAction === 'READ') {
-          if (typeof timestamp === 'number') {
-            timePresentOnRootDevice.value = timestamp;
+      } else if (message === 'COUNTDOWN_REMOVE_OK') {
+        if (id) {
+          notyf.success(`Đã xoá bộ hẹn giờ với id: ${id}.`);
+          countdowns.value = countdowns.value.filter(countdown => countdown.id != id);
+          if (countdowns.value.length) {
+            stateCountDown.value = StateCountDown.NO_COUNTDOWN;
           }
+        }
+      } else if (message === 'COUNTDOWN_CREATE_OK') {
+        notyf.success(`Tạo bộ hẹn giờ thành công - chạy sau ${timestamp}s!`);
+        const tmpCountDown = { id, timestamp, mode, state, createAt };
+        countdowns.value = [...countdowns.value, (mode ? { ...tmpCountDown } : { ...tmpCountDown, position }) as CountdownProps]
+      }
+    } else if (pType === 'timestamp') {
+      if (pAction === 'NOTIFY') {
+        if (typeof timestamp === 'number') {
+          console.log(timestamp);
+          timePresentOnRootDevice.value = timestamp;
         }
       }
     }

@@ -3,9 +3,17 @@
     <div class="flex items-center">
       <i style="line-height: 0;" class="fi fi-rr-location-crosshairs mr-2"></i>
       <div class="relative">
-        <n-ellipsis expand-trigger="click" class="text-xl font-thin">{{ translateType[props.type] }}</n-ellipsis>
-        <span class="absolute top-full left-0 whitespace-nowrap">id: {{ props.id ?? NaN }} - {{ props.ramSize }}
-          bytes</span>
+        <div class="relative text-xl font-thin flex items-center">
+          <span>{{ translateType[props.type] }}</span>
+          <p class="border py-1 px-2 rounded-full ml-2 flex items-center"
+            :class="props.status ? 'border-green-100' : 'border-slate-200'">
+            <span class="text-xs text-slate-500">{{ props.status ? 'đang kết nối' : 'mất kết nối' }}</span>
+            <span class="w-2 h-2 ml-1 rounded-full" :class="props.status ? 'bg-green-200' : 'bg-slate-200'"></span>
+          </p>
+        </div>
+        <div class="absolute top-full left-0 whitespace-nowrap">
+          <span>id: {{ props.id ?? NaN }} - {{ props.ramSize }} bytes</span>
+        </div>
       </div>
     </div>
     <n-popover :show="optionsState" :on-update:show="handlePopoverSetting" style="padding: 0;" trigger="click"
@@ -57,6 +65,7 @@ const props = defineProps<{
   type: WidgetType,
   id: string,
   ramSize: number | undefined,
+  status?: boolean,
 }>();
 
 const optionsState = ref<boolean>(false);

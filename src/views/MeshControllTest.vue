@@ -4,22 +4,41 @@
       <div class="h-12">
         <h1 class="text-2xl pb-4">Điều khiển thiết bị MESH</h1>
       </div>
-      <n-text type="primary">
-        hostname: esp-skytech.local với IP: {{ ipMeshRoot }}
+      <n-text class="flex items-center justify-between" type="primary">
+        <span>{ esp-skytech.local</span> <i class="fi fi-rr-link text-xs mx-1"></i> <span>{{ ipMeshRoot }} }</span>
+        <n-popover :show="cmdBtnShow" :on-update:show="cmdPopoverSetting" style="padding: 0;" trigger="click"
+          placement="bottom-end">
+          <template #trigger>
+            <n-button round icon-placement="right" size="small">
+              <template #icon>
+                <i style="line-height: 0;" class="fi fi-rr-settings font-bold transition-transform"
+                  :class="cmdBtnShow ? 'rotate-90' : ''"></i>
+              </template>
+              cài đặt
+            </n-button>
+          </template>
+          <n-button-group size="large" vertical>
+            <n-button :key="option.key" v-for="option in optionsDropdownCmd"
+              @click="handleActiveCmd(option.key as CmdCode)">
+              <i style="line-height: 0;" class="mr-2" :class="option.icon"></i>
+              <span>{{ option.label }}</span>
+            </n-button>
+          </n-button-group>
+        </n-popover>
       </n-text>
       <div class="flex items-center justify-between my-2">
         <div class="flex items-center mb-2">
           <i style="line-height: 0" class="fi fi-rr-vector-alt"></i>
-          <h2 class="text-lg ml-2">danh sách các node</h2>
+          <h2 class="text-lg ml-2">Danh sách {{ value.length }} node</h2>
         </div>
 
-        <n-button round type="info" @click="getNodes(ipMeshRoot)">làm mới <i style="line-height: 0"
-            class="fi fi-rr-refresh ml-2" :class="refreshing ? 'animate-spin' : ''"></i></n-button>
+        <n-button round type="info" @click="reloadNodes">làm mới <i style="line-height: 0" class="fi fi-rr-refresh ml-2"
+            :class="refreshing ? 'animate-spin' : ''"></i></n-button>
       </div>
     </div>
     <div class="flex-1 overflow-y-scroll mt-2">
-      <switch-group @group-controll="(payload) => controllNode(payload, node)" v-for="node in nodes.value"
-        :key="node.target" :type="node.deviceType" :id="node.target" :info-switch="(node as NodeMeshProps)" />
+      <switch-group @group-controll="(payload) => controllNode(payload, node)" v-for="node in value" :key="node.target"
+        :type="node.info.dType" :id="node.target" :info-switch="node" />
     </div>
     <n-drawer v-model:show="drawerSchedule" default-height="70%" placement="bottom">
       <n-drawer-content>
@@ -77,10 +96,10 @@
 
 <script setup lang="ts">
 import { CapacitorHttp } from '@capacitor/core';
-import { NButton, NText, NDrawer, NDrawerContent, NSpace } from "naive-ui";
+import { NButton, NText, NDrawer, NDrawerContent, NSpace, NPopover, NButtonGroup } from "naive-ui";
 import { NodeMeshProps } from "@/components/MeshNodeDemo.vue";
 import { storeToRefs } from 'pinia'
-import { useCommonStore } from '@/store';
+import { useCommonStore, useNodeStore, FullInfoNodeProps, CmdCode } from '@/store';
 import { ref, watch, onMounted, onUnmounted, reactive, getCurrentInstance } from "vue";
 import { Emitter, EventType, Handler } from 'mitt';
 
@@ -98,10 +117,24 @@ interface ResponseNode {
   message: string,
 }
 
+const optionsDropdownCmd = [
+  {
+    label: 'Bật hết thiết bị',
+    key: 'on-all',
+    icon: 'fi fi-rr-light-switch-on'
+  },
+  {
+    label: 'Tắt hết thiết bị',
+    key: 'off-all',
+    icon: 'fi-rr-light-switch-off'
+  },
+]
+
 const app = getCurrentInstance();
 const emitter = app?.appContext.config.globalProperties.emitter as Emitter<Record<EventType, MenuProps>>;
 
 const nodes = reactive<{ value: Array<NodeMeshProps> }>({ value: [] });
+const cmdBtnShow = ref<boolean>(false);
 const refreshing = ref<boolean>(false);
 const drawerSchedule = ref<boolean>(false);
 const drawerCountDown = ref<boolean>(false);
@@ -110,28 +143,16 @@ const modalCountDown = ref<boolean>(false);
 const pickSelectMenuItemByNode = ref<MenuProps>();
 
 const { ipMeshRoot, wsClient } = storeToRefs(useCommonStore());
+const { value } = storeToRefs(useNodeStore());
+const { getNodes, controlMutiNodeByCMD } = useNodeStore();
 
-const getNodes = async (ip: string | undefined) => {
-  if (typeof ip === 'string') {
-    refreshing.value = true;
-    const response = await CapacitorHttp.get({ url: `http://${ip}/api/v1/mesh/topology` });
-    const payload: ResponseNode = response.data;
-
-    if (payload.message === 'FIND_NODE_SUCCESSFULLY') {
-      console.log(payload.nodes);
-      nodes.value = payload.nodes;
-    }
-    refreshing.value = false;
-  }
-}
-
-const controllNode = (payload: GroupControllProps, node: NodeMeshProps) => {
+const controllNode = (payload: GroupControllProps, node: FullInfoNodeProps) => {
   const packet: PacketProps<PacketControll<TouchProps>> = {
     target: node.target,
     payload: {
       pType: 'controll',
       pAction: 'UPDATE',
-      dType: node.deviceType,
+      mode: 0,
       position: payload.position,
       state: payload.state,
     }
@@ -139,31 +160,27 @@ const controllNode = (payload: GroupControllProps, node: NodeMeshProps) => {
 
   if (wsClient.value) {
     if (wsClient.value.readyState === wsClient.value.OPEN) {
-      console.log(packet);
+      // console.log(packet);
       wsClient.value.send(JSON.stringify(packet));
     }
   }
 
 }
 
-const onMessage = (event: MessageEvent<any>) => {
-  const payload: MessageSocketProps = JSON.parse(typeof event.data === 'string' ? event.data : '');
-
-  if (payload) {
-    if (payload.payload.pType === 'controll') {
-      nodes.value.forEach((node, index) => {
-        if (node.target === payload.target) {
-          node.value.forEach((value, jndex) => {
-            if (value.position === payload.payload.position) {
-              nodes.value[index].value[jndex].state = payload.payload.state as boolean;
-              return;
-            }
-          })
-          return;
-        }
-      })
-    }
+const reloadNodes = () => {
+  if (typeof ipMeshRoot.value === 'string' && wsClient.value) {
+    getNodes(ipMeshRoot.value, wsClient.value);
   }
+}
+
+const handleActiveCmd = (cmd: CmdCode) => {
+  // console.log(cmd);
+  controlMutiNodeByCMD(cmd);
+  cmdBtnShow.value = false;
+}
+
+const cmdPopoverSetting = (value: boolean) => {
+  cmdBtnShow.value = value;
 }
 
 const openMenu = (e: MenuProps) => {
@@ -196,38 +213,6 @@ const handleCloseModalCountDown = () => {
 if (emitter) {
   emitter.on('contextmenu', openMenu);
 }
-
-
-watch(nodes.value, (vl) => {
-  console.log(vl);
-}, { deep: true })
-
-onMounted(() => {
-  console.log(wsClient.value);
-
-  if (wsClient.value) {
-    if (wsClient.value.readyState === wsClient.value.OPEN) {
-      wsClient.value.addEventListener('message', onMessage);
-    }
-  }
-})
-
-getNodes(ipMeshRoot.value);
-
-watch(ipMeshRoot, (ip) => {
-  getNodes(ip);
-})
-
-onUnmounted(() => {
-  if (emitter) {
-    emitter.off('contextmenu', openMenu);
-  }
-  if (wsClient.value) {
-    if (wsClient.value.readyState === wsClient.value.OPEN) {
-      wsClient.value.removeEventListener('message', onMessage);
-    }
-  }
-})
 
 </script>
 

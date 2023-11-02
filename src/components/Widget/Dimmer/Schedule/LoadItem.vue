@@ -151,10 +151,11 @@ const onMessage = (event: MessageEvent<any>) => {
   }
 
   if (payload) {
-    const { dType, pAction, pType, schedule, id } = payload;
+    const { dType, pAction, pType, schedule, id, message } = payload;
     /* handle via action type =)) */
-    if (dType === props.dType && pType === 'schedule') {
-      if (pAction === 'READ') {
+    if (pType === 'schedule') {
+      console.log(message);
+      if (message === 'SCHEDULE_READ_OK') {
         if (schedule) {
           schedules.value = schedule as Array<ScheduleProps>;
           if (schedule.length === 0) {
@@ -163,12 +164,13 @@ const onMessage = (event: MessageEvent<any>) => {
             stateSchedule.value = StateSchedule.END_LOAD;
           }
         }
-      } else if (pAction === 'DELETE') {
+      }
+      else if (message === 'SCHEDULE_REMOVE_OK') {
         if (id) {
           notyf.success(`Đã xoá lập lịch với id: ${id}.`);
           schedules.value = schedules.value.filter(schedule => schedule.id != id);
         }
-      } else if (pAction === 'CREATE') {
+      } else if (message === 'SCHEDULE_CREATE_OK') {
         notyf.success('Tạo lập lịch thành công!');
       }
     }
