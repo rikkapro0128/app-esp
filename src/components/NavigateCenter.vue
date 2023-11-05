@@ -39,6 +39,7 @@ import {
   ArrowPathIcon,
   ArrowDownCircleIcon,
   CubeTransparentIcon,
+  Cog6ToothIcon
 } from "@heroicons/vue/24/solid";
 
 import { FunctionalComponent, HTMLAttributes, VNodeProps, ref } from "vue";
@@ -73,6 +74,7 @@ const drawerInfo: Array<DrawerInfo> = [
   },
   { name: "ota-upgrade", title: "cập nhật OTA", icon: ArrowPathIcon },
   { name: "mesh-ota-upgrade", title: "Mesh OTA", icon: ArrowDownCircleIcon },
+  { name: "mesh-setting", title: "Mesh setting", icon: Cog6ToothIcon },
 ];
 
 const handleMenuList = (item: DrawerInfo) => {

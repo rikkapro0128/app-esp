@@ -6,6 +6,7 @@ import OTAUpgrade from "@/views/OTAUpgrade.vue";
 import MeshOTAUpgrade from "@/views/MeshOTA.vue";
 import ControllDevice from "@/views/Controll.vue";
 import MeshControllTest from "@/views/MeshControllTest.vue";
+import MeshSetting from "@/views/MeshSetting.vue";
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -29,6 +30,11 @@ const routes: Array<RouteRecordRaw> = [
     path: "/mesh-ota-upgrade",
     name: "mesh-ota-upgrade",
     component: MeshOTAUpgrade,
+  },
+  {
+    path: "/mesh-setting",
+    name: "mesh-setting",
+    component: MeshSetting,
   },
   {
     path: "/mesh-controll",
