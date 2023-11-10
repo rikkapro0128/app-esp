@@ -25,7 +25,8 @@ import { Capacitor } from "@capacitor/core";
 import { GlobalEvents } from 'vue-global-events';
 import mitt from 'mitt';
 
-import connectBroker, { connectSocketServer } from "@/protocol/mqtt";
+import connectBroker from "@/protocol/mqtt";
+import { connectSocketServer } from "@/protocol/ws";
 
 import * as mqtt from "mqtt/dist/mqtt.min";
 

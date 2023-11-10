@@ -3,5 +3,5 @@
     <string name="app_name">Smart Miru</string>
     <string name="title_activity_main">Smart Miru</string>
     <string name="package_name">io.miru.dimmer</string>
-    <string name="custom_url_scheme">io.ionic.starter</string>
+    <string name="custom_url_scheme">io.miru.dimmer</string>
 </resources>

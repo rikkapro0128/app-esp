@@ -18,10 +18,11 @@ export type TypeSchedule = "schedule";
 export type TypeTimeStamp = "timestamp";
 export type TypeNodeEnter = "node_enter";
 export type TypeNodeOuter = "node_outer";
+export type TypeScene = "scene";
 
 export type TypeTouchPadState = "touchpad_state";
 
-export type TypeMenu = "schedule" | "countdown";
+export type TypeMenu = "schedule" | "countdown" | "scene";
 export type LoadType = "ws" | "mqtt";
 export type PacketType =
   | TypeControll
@@ -34,6 +35,7 @@ export type PacketType =
   | TypeTimeStamp
   | TypeNodeEnter
   | TypeNodeOuter
+  | TypeScene
   | TypeTouchPadState; // this is type of packet will be send
 export type PacketAction = "READ" | "CREATE" | "UPDATE" | "DELETE" | "NOTIFY"; // this is type of packet will be send
 

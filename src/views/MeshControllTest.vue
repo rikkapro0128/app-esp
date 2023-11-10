@@ -86,11 +86,36 @@
       </n-drawer-content>
     </n-drawer>
 
+    <n-drawer v-model:show="drawerScene" default-height="100%" placement="bottom">
+      <n-drawer-content closable>
+        <template #header>
+          <div class="flex items-center">
+            <i style="line-height: 0;" class="fi fi-rr-calendar-clock mr-2"></i>
+            <span>Ngữ cảnh</span>
+          </div>
+        </template>
+        <div class="flex flex-col h-full">
+          <n-space justify="end">
+            <n-button @click="handleActiveModalCreateScene" round type="tertiary">
+              <template #icon>
+                <i style="line-height: 0;" class="fi fi-rr-calendar-plus"></i>
+              </template>
+              <span>tạo mới</span>
+            </n-button>
+          </n-space>
+          <load-scene :target="(pickSelectMenuItemByNode?.id as string)"
+            :d-type="(pickSelectMenuItemByNode?.dType as WidgetType)" />
+        </div>
+      </n-drawer-content>
+    </n-drawer>
+
     <modal-schedule :id-device="(pickSelectMenuItemByNode?.id as string)" :show="modalSchedule" :load-from="'ws'"
       :d-type="(pickSelectMenuItemByNode?.dType as WidgetType)" v-on:close="handleCloseModalSchedule" />
 
     <modal-create :id-device="(pickSelectMenuItemByNode?.id as string)" :show="modalCountDown" :load-from="'ws'"
       :d-type="(pickSelectMenuItemByNode?.dType as WidgetType)" v-on:close="handleCloseModalCountDown" />
+
+    <modal-create-scene :node-base="pickSelectMenuItemByNode" :show="modalScene" v-on:close="handleCloseModalScene" />
   </div>
 </template>
 
@@ -107,8 +132,11 @@ import SwitchGroup, { GroupControllProps } from '@/components/Widget/Switch/Grou
 
 import LoadSchedule from '@/components/Widget/Dimmer/Schedule/LoadItem.vue';
 import LoadCountDown from '@/components/Widget/CountDown/LoadItem.vue';
+import LoadScene from '@/components/Widget/Scene/LoadScene.vue';
+
 import ModalSchedule from '@/components/Widget/Dimmer/Schedule/Modal.vue';
 import ModalCreate from '@/components/Widget/CountDown/ModalCreate.vue';
+import ModalCreateScene from '@/components/Widget/Scene/ModalCreate.vue';
 
 import { PacketProps, TouchProps, PacketControll, MessageSocketProps, MenuProps, WidgetType } from '@/components/Widget';
 
@@ -138,9 +166,15 @@ const cmdBtnShow = ref<boolean>(false);
 const refreshing = ref<boolean>(false);
 const drawerSchedule = ref<boolean>(false);
 const drawerCountDown = ref<boolean>(false);
+const drawerScene = ref<boolean>(false);
 const modalSchedule = ref<boolean>(false);
 const modalCountDown = ref<boolean>(false);
-const pickSelectMenuItemByNode = ref<MenuProps>();
+const modalScene = ref<boolean>(false);
+let pickSelectMenuItemByNode = reactive<MenuProps>({
+  dType: 'touch_4',
+  id: '',
+  select: 'schedule',
+});
 
 const { ipMeshRoot, wsClient } = storeToRefs(useCommonStore());
 const { value } = storeToRefs(useNodeStore());
@@ -159,7 +193,7 @@ const controllNode = (payload: GroupControllProps, node: FullInfoNodeProps) => {
   };
 
   if (wsClient.value) {
-    if (wsClient.value.readyState === wsClient.value.OPEN) {
+    if (wsClient.value.readyState === WebSocket.OPEN) {
       // console.log(packet);
       wsClient.value.send(JSON.stringify(packet));
     }
@@ -188,8 +222,10 @@ const openMenu = (e: MenuProps) => {
     drawerSchedule.value = true;
   } else if (e.select === 'countdown') {
     drawerCountDown.value = true;
+  } else if (e.select === 'scene') {
+    drawerScene.value = true;
   }
-  pickSelectMenuItemByNode.value = e;
+  pickSelectMenuItemByNode = e;
 }
 
 const handleActiveModalSchedule = () => {
@@ -200,6 +236,10 @@ const handleActiveModalCountDown = () => {
   modalCountDown.value = true;
 }
 
+const handleActiveModalCreateScene = () => {
+  modalScene.value = true;
+}
+
 const handleCloseModalSchedule = () => {
   modalSchedule.value = false;
   drawerSchedule.value = false;
@@ -208,6 +248,10 @@ const handleCloseModalSchedule = () => {
 const handleCloseModalCountDown = () => {
   modalCountDown.value = false;
   // drawerCountDown.value = false;
+}
+
+const handleCloseModalScene = () => {
+  modalScene.value = false;
 }
 
 if (emitter) {

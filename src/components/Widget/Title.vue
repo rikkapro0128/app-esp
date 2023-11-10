@@ -82,6 +82,11 @@ const optionsDropdown = [
     key: 'countdown',
     icon: 'fi fi-rr-time-add'
   },
+  {
+    label: 'ngữ cảnh',
+    key: 'scene',
+    icon: 'fi fi-rr-picture'
+  },
 ]
 
 const handleSelect = (key: string | number) => {
