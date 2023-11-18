@@ -4,10 +4,10 @@
       <i style="line-height: 0;" class="fi fi-rr-location-crosshairs mr-2"></i>
       <div class="relative">
         <div class="relative text-xl font-thin flex items-center">
-          <span>{{ translateType[props.type] }}</span>
+          <n-ellipsis :line-clamp="1">{{ name ?? translateType[props.type] }}</n-ellipsis>
           <p class="border py-1 px-2 rounded-full ml-2 flex items-center"
             :class="props.status ? 'border-green-100' : 'border-slate-200'">
-            <span class="text-xs text-slate-500">{{ props.status ? 'đang kết nối' : 'mất kết nối' }}</span>
+            <span class="text-xs text-slate-500 whitespace-nowrap">{{ props.status ? 'đang kết nối' : 'mất kết nối' }}</span>
             <span class="w-2 h-2 ml-1 rounded-full" :class="props.status ? 'bg-green-200' : 'bg-slate-200'"></span>
           </p>
         </div>
@@ -44,26 +44,18 @@ import { NEllipsis, NButton, NPopover, NButtonGroup } from 'naive-ui'
 
 import { PropType, reactive, ref, getCurrentInstance } from 'vue';
 
+import { translateType } from '@/translate'
+
 import { WidgetType, TypeMenu, MenuProps } from '@/components/Widget';
 import { Emitter, EventType } from 'mitt';
 
 const app = getCurrentInstance();
 const emitter = app?.appContext.config.globalProperties.emitter as Emitter<Record<EventType, MenuProps>>;
 
-const translateType = {
-  'dimmer': 'Dimmer',
-  'switch': 'Công tắc',
-  'color': 'Màu sắc',
-  'touch_1': 'Công tắc 1',
-  'touch_2': 'Công tắc 2',
-  'touch_3': 'Công tắc 3',
-  'touch_4': 'Công tắc 4',
-  'light_dimmer': 'Dimmer đèn',
-}
-
 const props = defineProps<{
   type: WidgetType,
   id: string,
+  name?: string,
   ramSize: number | undefined,
   status?: boolean,
 }>();
@@ -86,6 +78,11 @@ const optionsDropdown = [
     label: 'ngữ cảnh',
     key: 'scene',
     icon: 'fi fi-rr-picture'
+  },
+  {
+    label: 'Thông tin',
+    key: 'info_node',
+    icon: 'fi fi-rr-comment-info'
   },
 ]
 

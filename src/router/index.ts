@@ -7,16 +7,22 @@ import MeshOTAUpgrade from "@/views/MeshOTA.vue";
 import ControllDevice from "@/views/Controll.vue";
 import MeshControllTest from "@/views/MeshControllTest.vue";
 import MeshSetting from "@/views/MeshSetting.vue";
+import Something from "@/views/Something.vue";
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: "/",
-    redirect: "/device-info",
+    redirect: "/mesh-controll",
   },
   {
     path: "/connection",
     name: "connection",
     component: Connection,
+  },
+  {
+    path: "/demo",
+    name: "demo",
+    component: Something,
   },
   {
     path: "/ota-upgrade",

@@ -14,6 +14,9 @@ import {
 
 import { CapacitorHttp } from "@capacitor/core";
 
+import DBNodeInfo from "@/IndexDB/nodeInfo";
+import DBSwitchInfo from "@/IndexDB/Device/Switch";
+
 interface StateProps {
   mqttBroker: mqtt.Client | undefined;
   wsClient: WebSocket | undefined;
@@ -33,13 +36,14 @@ export interface NodeInfoProps {
   idfVersion: string;
   compileTime: string;
   compileDate: string;
+  name?: string;
 }
 
 export type CmdCode = "on-all" | "off-all";
 
 export interface MessageReceiveProps
   extends MessageRequireProps,
-    NodeInfoProps {}
+  NodeInfoProps { }
 
 export interface FullInfoNodeProps {
   target: string;
@@ -125,6 +129,31 @@ export const useNodeStore = defineStore("node", {
           await sleep(100);
         }
       }
+    },
+    updateNameNode(target: string, name: string) {
+      const findNode = this.value.findIndex((node) => node.target === target);
+      if (findNode !== -1) {
+        this.value[findNode].info.name = name;
+        this.reSaveInfoNode(target, this.value[findNode].info);
+      }
+    },
+    updateNameTouch(target: string, position: number, name: string) {
+      const findNode = this.value.findIndex((node) => node.target === target && node.info.dType.includes("touch"));
+      console.log(findNode);
+      
+      if (findNode !== -1) {
+        this.value[findNode].value[position - 1].name = name;
+        // console.log(name)
+        this.reSaveInfoTouch(target, this.value[findNode].value);
+      }
+    },
+    reSaveInfoTouch(target: string, value: Array<TouchProps>) {
+      const refactor = value.map(({ name }) => ({ name }));
+      DBSwitchInfo.storage.set(target, refactor);
+    },
+    reSaveInfoNode(target: string, info: NodeInfoProps) {
+      // console.log(info);
+      DBNodeInfo.storage.set(target, { ...info });
     },
   },
 });

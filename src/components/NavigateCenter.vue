@@ -56,23 +56,28 @@ const router = useRouter();
 const open = ref<boolean>(false);
 
 const drawerInfo: Array<DrawerInfo> = [
+  // {
+  //   name: "device-info",
+  //   title: "thông tin hệ thống",
+  //   icon: InformationCircleIcon,
+  // },
   {
-    name: "device-info",
-    title: "thông tin hệ thống",
+    name: "demo",
+    title: "App test",
     icon: InformationCircleIcon,
   },
-  { name: "connection", title: "cấu hình mạng", icon: WifiIcon },
-  {
-    name: "controll-device",
-    title: "điều khiển thiết bị",
-    icon: AdjustmentsVerticalIcon,
-  },
+  // { name: "connection", title: "cấu hình mạng", icon: WifiIcon },
+  // {
+  //   name: "controll-device",
+  //   title: "điều khiển thiết bị",
+  //   icon: AdjustmentsVerticalIcon,
+  // },
   {
     name: "mesh-controll",
     title: "điều khiển thiết bị mesh",
     icon: CubeTransparentIcon,
   },
-  { name: "ota-upgrade", title: "cập nhật OTA", icon: ArrowPathIcon },
+  // { name: "ota-upgrade", title: "cập nhật OTA", icon: ArrowPathIcon },
   { name: "mesh-ota-upgrade", title: "Mesh OTA", icon: ArrowDownCircleIcon },
   { name: "mesh-setting", title: "Mesh setting", icon: Cog6ToothIcon },
 ];

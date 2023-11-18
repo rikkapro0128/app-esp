@@ -18,18 +18,31 @@ import {
   ResponseNode,
 } from "@/components/Widget";
 
+import DBNodeInfo from "@/IndexDB/nodeInfo";
+import DBSwitchInfo from "@/IndexDB/Device/Switch";
+
 let idPoolPing: NodeJS.Timeout;
 
 const connectSocketServer = (hostname: string) => {
   const commonStore = useCommonStore();
 
+  // console.log(commonStore.wsClient?.url);
+  if (hostname && commonStore.wsClient?.url) {
+    if (typeof hostname === 'string' && typeof commonStore.wsClient.url === 'string') {
+      if (commonStore.wsClient.url.includes(hostname)) {
+        return;
+      }
+    }
+  }
+
   console.log(hostname);
 
   if (commonStore.wsClient) {
-    if (commonStore.wsClient?.readyState === WebSocket.OPEN) {
-      commonStore.wsClient.onclose = null;
-      commonStore.wsClient.close(); // close connection if DNS change
-    }
+    commonStore.wsClient.onclose = null;
+    commonStore.wsClient.onmessage = null;
+    commonStore.wsClient.close(); // close connection if DNS change
+    // if (commonStore.wsClient?.readyState === WebSocket.OPEN) {
+    // }
   }
 
   startWebsocket(hostname, (ws) => {
@@ -41,7 +54,7 @@ const initDefaultStateDevice = (dType: WidgetType): Array<TouchProps> => {
   if (dType.includes("touch")) {
     return Array(parseInt(dType.slice(-1)))
       .fill(0)
-      .map((_, index) => ({ position: index + 1, state: false }));
+      .map((_, index) => ({ position: index + 1, state: false, name: "" }));
   } else {
     return [];
   }
@@ -62,9 +75,9 @@ const requestDeviceState = (device: FullInfoNodeProps, ws: WebSocket) => {
   }
 };
 
-const classifyPacket = (message: MessageSocketProps, ws: WebSocket) => {
+const classifyPacket = async (message: MessageSocketProps, ws: WebSocket) => {
   const { payload, target } = message;
-  const { pAction, pType } = payload;
+  const { pAction, pType, dType } = payload;
   if (pAction === "NOTIFY") {
     const nodeStore = useNodeStore();
     if (pType === "info_node") {
@@ -72,12 +85,23 @@ const classifyPacket = (message: MessageSocketProps, ws: WebSocket) => {
       /* check node is exist */
       nodeStore.value = nodeStore.value.filter((node) => node.target != target);
       /* push new node */
+      const info_node = await DBNodeInfo.storage.get(target);
+      const generateInfo = { ...info_node, ...some };
       const node = {
         target: target,
-        info: some,
+        info: generateInfo,
         value: initDefaultStateDevice(payload.dType),
         status: true,
       };
+      if (dType.includes('touch')) {
+        const names_switch = await DBSwitchInfo.storage.get(target);
+        if (names_switch) {
+          node.value = node.value.map((touch, index) => ({ ...touch, name: names_switch[index]?.name }));
+        }
+      }
+      console.log(node);
+      // console.log(generateInfo);
+      DBNodeInfo.storage.set(target, generateInfo as NodeInfoProps);
       nodeStore.value.push(node as never);
       // console.log(nodeStore.value);
       requestDeviceState(node, ws);
@@ -96,18 +120,29 @@ const classifyPacket = (message: MessageSocketProps, ws: WebSocket) => {
       const nodeIndex = nodeStore.value.findIndex(
         (node) => node.target === target
       );
-      nodeStore.value[nodeIndex].value = value as Array<TouchProps>;
+      if (value) {
+        nodeStore.value[nodeIndex].value = nodeStore.value[nodeIndex].value.map((touch, index) => ({
+          ...touch,
+          ...(value as Array<TouchProps>)[index]
+        }));
+      }
     } else if (pType === "controll") {
-      const { position, state } = payload;
+      const { position, state, mode } = payload;
 
-      if (typeof position === "number" && typeof state === "boolean") {
-        const nodeIndex = nodeStore.value.findIndex(
-          (node) => node.target === target
-        );
-        if (nodeStore.value[nodeIndex]?.value) {
+      const nodeIndex = nodeStore.value.findIndex(
+        (node) => node.target === target
+      );
+
+      if (mode === 1) {
+        nodeStore.value[nodeIndex].value = nodeStore.value[nodeIndex].value.map(touch => ({ ...touch, state })) as Array<TouchProps>;
+      }
+      else if (mode === 0) {
+        if (typeof position === "number" && typeof state === "boolean") {
+          
           nodeStore.value[nodeIndex].value[position - 1].state = state;
         }
       }
+
     } else if (pType === "ota") {
       const { status } = payload;
       const { upgradeInfo, downloadInfo } = useMeshOTAStore();

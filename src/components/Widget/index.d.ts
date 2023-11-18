@@ -22,7 +22,7 @@ export type TypeScene = "scene";
 
 export type TypeTouchPadState = "touchpad_state";
 
-export type TypeMenu = "schedule" | "countdown" | "scene";
+export type TypeMenu = "schedule" | "countdown" | "scene" | "info_node";
 export type LoadType = "ws" | "mqtt";
 export type PacketType =
   | TypeControll
@@ -42,6 +42,7 @@ export type PacketAction = "READ" | "CREATE" | "UPDATE" | "DELETE" | "NOTIFY"; /
 interface TouchProps {
   position: number; // 1, 2, 3, 4
   state: boolean;
+  name?: string;
 }
 export interface ResponseNode {
   nodes: Array<string>;

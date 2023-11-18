@@ -145,11 +145,11 @@ watch(dTypeNumTouch, filterOptionDType);
 
 watch(chooseDType, (dType) => {
   if (dType) {
-    touchOptions.value = nodes.value.filter((node) => node.info.dType === dType).map((node) => ({
+    touchOptions.value = nodes.value.filter((node) => node.info.dType === dType && node.target !== props.nodeBase.id).map((node) => ({
       label: `${node.target}`,
       key: `${node.target}`,
       children: node.info.dType.includes('touch') ? node.value.map(touch => ({
-        label: `Chạm ${touch.position}`,
+        label: touch?.name || `Chạm ${touch.position}`,
         key: `${node.target}-${touch.position}`,
       })) : [],
     }));

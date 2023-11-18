@@ -2,10 +2,14 @@ import { Zeroconf } from '@ionic-native/zeroconf';
 
 import { useCommonStore } from '@/store';
 
-export const checkServiceDNS = (cb: (ip: string | undefined) => void) => {
+export const checkServiceDNS = async (cb: (ip: string | undefined) => void) => {
 
   const commonStore = useCommonStore();
-  
+
+  console.log('checkServiceDNS');
+  Zeroconf.close();
+  Zeroconf.stop();
+
   Zeroconf.watch("_http._tcp.", "local.").subscribe(result => {
     console.log("Zeroconf Service Changed:");
     console.log(result);
@@ -23,5 +27,7 @@ export const checkServiceDNS = (cb: (ip: string | undefined) => void) => {
       }
     }
   });
+  
+  await Zeroconf.reInit();
   
 }
