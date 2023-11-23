@@ -1,6 +1,6 @@
 <template>
   <div>
-    <title-switch :id="props.infoSwitch.target" :name="props.infoSwitch.info.name" :type="(props.infoSwitch.info.dType as WidgetType)"
+    <title-switch :is-root="props.infoSwitch.info?.isRoot" :id="props.infoSwitch.target" :name="props.infoSwitch.info.name" :type="(props.infoSwitch.info.dType as WidgetType)"
       :ram-size="props.infoSwitch.info.ramUse" :status="props.infoSwitch.status"></title-switch>
     <div class="flex mt-8 mb-4">
       <div v-if="props.infoSwitch.value.length > 0" class="w-full grid grid-cols-4">

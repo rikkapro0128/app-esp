@@ -26,7 +26,7 @@ let idPoolPing: NodeJS.Timeout;
 const connectSocketServer = (hostname: string) => {
   const commonStore = useCommonStore();
 
-  // console.log(commonStore.wsClient?.url);
+  console.log(commonStore.wsClient);
   if (hostname && commonStore.wsClient?.url) {
     if (typeof hostname === 'string' && typeof commonStore.wsClient.url === 'string') {
       if (commonStore.wsClient.url.includes(hostname)) {
@@ -105,6 +105,16 @@ const classifyPacket = async (message: MessageSocketProps, ws: WebSocket) => {
       nodeStore.value.push(node as never);
       // console.log(nodeStore.value);
       requestDeviceState(node, ws);
+    } else if (pType === "state_all") {
+      const { state } = payload;
+      nodeStore.value.forEach((node, index) => {
+        if (node.info.dType.includes('touch')) {
+          nodeStore.value[index].value = nodeStore.value[index].value.map((touch, index) => ({
+            ...touch,
+            state: state as boolean,
+          }))
+        }
+      })
     } else if (pType === "node_enter") {
       const nodeIndex = nodeStore.value.findIndex(
         (node) => node.target === target
@@ -138,7 +148,7 @@ const classifyPacket = async (message: MessageSocketProps, ws: WebSocket) => {
       }
       else if (mode === 0) {
         if (typeof position === "number" && typeof state === "boolean") {
-          
+
           nodeStore.value[nodeIndex].value[position - 1].state = state;
         }
       }

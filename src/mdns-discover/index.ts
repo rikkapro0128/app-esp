@@ -7,27 +7,28 @@ export const checkServiceDNS = async (cb: (ip: string | undefined) => void) => {
   const commonStore = useCommonStore();
 
   console.log('checkServiceDNS');
+
   Zeroconf.close();
   Zeroconf.stop();
 
   Zeroconf.watch("_http._tcp.", "local.").subscribe(result => {
     console.log("Zeroconf Service Changed:");
     console.log(result);
-    if(result.action === 'resolved') {
-      if(result.service.name.includes('esp-skytech') && result.service.ipv4Addresses.length > 0) {
+    if (result.action === 'resolved') {
+      if (result.service.name.includes('ESP32 Skytech') && result.service.ipv4Addresses.length > 0) {
         localStorage.setItem('ip-dns-root', result.service.ipv4Addresses[0]);
         commonStore.ipMeshRoot = result.service.ipv4Addresses[0];
         cb(result.service.ipv4Addresses[0]);
       }
-    }else if(result.action === 'added' ) {
-      if(result.service.name.includes('esp-skytech') && result.service.ipv4Addresses.length === 0) {
+    } else if (result.action === 'added') {
+      if (result.service.name.includes('esp-skytech') && result.service.ipv4Addresses.length === 0) {
         const loadIP = localStorage.getItem('ip-dns-root');
         commonStore.ipMeshRoot = loadIP ?? undefined;
         cb(loadIP ?? undefined);
       }
     }
   });
-  
+
   await Zeroconf.reInit();
-  
+
 }

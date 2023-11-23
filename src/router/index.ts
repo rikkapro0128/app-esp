@@ -8,6 +8,7 @@ import ControllDevice from "@/views/Controll.vue";
 import MeshControllTest from "@/views/MeshControllTest.vue";
 import MeshSetting from "@/views/MeshSetting.vue";
 import Something from "@/views/Something.vue";
+import MeshMap from "@/views/MeshMap.vue";
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -49,6 +50,14 @@ const routes: Array<RouteRecordRaw> = [
       requireInternet: true,
     },
     component: MeshControllTest,
+  },
+  {
+    path: "/mesh-map",
+    name: "mesh-map",
+    meta: {
+      requireInternet: true,
+    },
+    component: MeshMap,
   },
   {
     path: "/device-info",

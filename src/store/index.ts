@@ -37,6 +37,7 @@ export interface NodeInfoProps {
   compileTime: string;
   compileDate: string;
   name?: string;
+  isRoot?: boolean;
 }
 
 export type CmdCode = "on-all" | "off-all";
@@ -113,21 +114,20 @@ export const useNodeStore = defineStore("node", {
       const { wsClient } = useCommonStore();
       if (wsClient?.readyState === WebSocket.OPEN) {
         const { value } = useNodeStore();
-        for await (const iterator of value) {
-          // console.log(iterator);
-          wsClient.send(
-            JSON.stringify({
-              target: iterator.target,
-              payload: {
-                pType: "controll",
-                pAction: "UPDATE",
-                mode: 1,
-                state: cmd === "on-all" ? true : false,
-              },
-            } as MessageSocketProps)
-          );
-          await sleep(100);
-        }
+        value.forEach((node) => {
+          if (node.info.isRoot) {
+            wsClient.send(
+              JSON.stringify({
+                target: node.target,
+                payload: {
+                  pType: "state_all",
+                  pAction: "UPDATE",
+                  state: cmd === "on-all" ? true : false,
+                },
+              } as MessageSocketProps)
+            );
+          }
+        })
       }
     },
     updateNameNode(target: string, name: string) {
@@ -140,7 +140,7 @@ export const useNodeStore = defineStore("node", {
     updateNameTouch(target: string, position: number, name: string) {
       const findNode = this.value.findIndex((node) => node.target === target && node.info.dType.includes("touch"));
       console.log(findNode);
-      
+
       if (findNode !== -1) {
         this.value[findNode].value[position - 1].name = name;
         // console.log(name)

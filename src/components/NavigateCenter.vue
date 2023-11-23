@@ -66,6 +66,11 @@ const drawerInfo: Array<DrawerInfo> = [
     title: "App test",
     icon: InformationCircleIcon,
   },
+  {
+    name: "mesh-map",
+    title: "Sơ đồ mạng mesh",
+    icon: InformationCircleIcon,
+  },
   // { name: "connection", title: "cấu hình mạng", icon: WifiIcon },
   // {
   //   name: "controll-device",

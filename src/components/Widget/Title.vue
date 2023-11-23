@@ -1,7 +1,7 @@
 <template>
   <div class="relative z-10 flex justify-between items-center">
     <div class="flex items-center">
-      <i style="line-height: 0;" class="fi fi-rr-location-crosshairs mr-2"></i>
+      <i style="line-height: 0;" class="fi fi-rr-location-crosshairs mr-2" :class="props?.isRoot ? 'text-red-400' : 'text-green-400'"></i>
       <div class="relative">
         <div class="relative text-xl font-thin flex items-center">
           <n-ellipsis :line-clamp="1">{{ name ?? translateType[props.type] }}</n-ellipsis>
@@ -58,6 +58,7 @@ const props = defineProps<{
   name?: string,
   ramSize: number | undefined,
   status?: boolean,
+  isRoot?: boolean,
 }>();
 
 const optionsState = ref<boolean>(false);
