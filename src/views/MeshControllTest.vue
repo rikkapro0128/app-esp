@@ -164,6 +164,39 @@
     </n-drawer>
 
     <n-drawer
+      v-model:show="drawer.automation"
+      default-height="100%"
+      placement="bottom"
+    >
+      <n-drawer-content closable>
+        <template #header>
+          <div class="flex items-center">
+            <i style="line-height: 0" class="fi fi-rr-calendar-clock mr-2"></i>
+            <span>Tự động</span>
+          </div>
+        </template>
+        <div class="flex flex-col h-full">
+          <n-space justify="end">
+            <n-button
+              @click="handleActiveModalCreateAutomation"
+              round
+              type="tertiary"
+            >
+              <template #icon>
+                <i style="line-height: 0" class="fi fi-rr-calendar-plus"></i>
+              </template>
+              <span>tạo mới</span>
+            </n-button>
+          </n-space>
+          <load-autonmation
+            :target="(pickSelectMenuItemByNode?.id as string)"
+            :d-type="(pickSelectMenuItemByNode?.dType as WidgetType)"
+          />
+        </div>
+      </n-drawer-content>
+    </n-drawer>
+
+    <n-drawer
       v-model:show="drawer.info"
       default-height="100%"
       placement="bottom"
@@ -176,7 +209,7 @@
           </div>
         </template>
         <div class="flex flex-col h-full">
-          <load-info :node-base="pickSelectMenuItemByNode" /> 
+          <load-info :node-base="pickSelectMenuItemByNode" />
         </div>
       </n-drawer-content>
     </n-drawer>
@@ -201,6 +234,12 @@
       :node-base="pickSelectMenuItemByNode"
       :show="modalScene"
       v-on:close="handleCloseModalScene"
+    />
+
+    <modal-create-automation
+      :node-base="pickSelectMenuItemByNode"
+      :show="modalAutomation"
+      v-on:close="handleCloseModalAutomation"
     />
   </div>
 </template>
@@ -241,11 +280,13 @@ import SwitchGroup, {
 import LoadSchedule from "@/components/Widget/Dimmer/Schedule/LoadItem.vue";
 import LoadCountDown from "@/components/Widget/CountDown/LoadItem.vue";
 import LoadScene from "@/components/Widget/Scene/LoadScene.vue";
+import LoadAutonmation from "@/components/Widget/Automation/LoadAutonmation.vue";
 import LoadInfo from "@/components/Widget/Info/LoadInfo.vue";
 
 import ModalSchedule from "@/components/Widget/Dimmer/Schedule/Modal.vue";
 import ModalCreate from "@/components/Widget/CountDown/ModalCreate.vue";
 import ModalCreateScene from "@/components/Widget/Scene/ModalCreate.vue";
+import ModalCreateAutomation from "@/components/Widget/Automation/ModalCreate.vue";
 
 import {
   PacketProps,
@@ -276,18 +317,17 @@ const emitter = app?.appContext.config.globalProperties.emitter as Emitter<
 
 const cmdBtnShow = ref<boolean>(false);
 const refreshing = ref<boolean>(false);
-const drawerSchedule = ref<boolean>(false);
-const drawerCountDown = ref<boolean>(false);
-const drawerScene = ref<boolean>(false);
 const drawer = reactive({
   schedule: false,
   countdown: false,
   scene: false,
   info: false,
+  automation: false,
 });
 const modalSchedule = ref<boolean>(false);
 const modalCountDown = ref<boolean>(false);
 const modalScene = ref<boolean>(false);
+const modalAutomation = ref<boolean>(false);
 let pickSelectMenuItemByNode = reactive<MenuProps>({
   dType: "touch_4",
   id: "",
@@ -336,7 +376,7 @@ const cmdPopoverSetting = (value: boolean) => {
 
 const openMenu = (e: MenuProps) => {
   // console.log(e.select);
-  
+
   if (e.select === "schedule") {
     drawer.schedule = true;
   } else if (e.select === "countdown") {
@@ -345,6 +385,8 @@ const openMenu = (e: MenuProps) => {
     drawer.scene = true;
   } else if (e.select === "info_node") {
     drawer.info = true;
+  } else if (e.select === "automation") {
+    drawer.automation = true;
   }
   pickSelectMenuItemByNode = e;
 };
@@ -361,6 +403,10 @@ const handleActiveModalCreateScene = () => {
   modalScene.value = true;
 };
 
+const handleActiveModalCreateAutomation = () => {
+  modalAutomation.value = true;
+};
+
 const handleCloseModalSchedule = () => {
   modalSchedule.value = false;
 };
@@ -372,6 +418,10 @@ const handleCloseModalCountDown = () => {
 
 const handleCloseModalScene = () => {
   modalScene.value = false;
+};
+
+const handleCloseModalAutomation = () => {
+  modalAutomation.value = false;
 };
 
 if (emitter) {

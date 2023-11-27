@@ -19,11 +19,12 @@ export type TypeTimeStamp = "timestamp";
 export type TypeNodeEnter = "node_enter";
 export type TypeNodeOuter = "node_outer";
 export type TypeScene = "scene";
+export type TypeAutomation = "automation";
 export type TypeStateAll = "state_all";
 
 export type TypeTouchPadState = "touchpad_state";
 
-export type TypeMenu = "schedule" | "countdown" | "scene" | "info_node";
+export type TypeMenu = "schedule" | "countdown" | "scene" | "info_node" | 'automation';
 export type LoadType = "ws" | "mqtt";
 export type PacketType =
   | TypeControll
@@ -37,7 +38,7 @@ export type PacketType =
   | TypeNodeEnter
   | TypeNodeOuter
   | TypeScene
-  | TypeTouchPadState | TypeStateAll; // this is type of packet will be send
+  | TypeTouchPadState | TypeStateAll | TypeAutomation; // this is type of packet will be send
 export type PacketAction = "READ" | "CREATE" | "UPDATE" | "DELETE" | "NOTIFY"; // this is type of packet will be send
 
 interface TouchProps {

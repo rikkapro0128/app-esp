@@ -5,7 +5,7 @@
     <div class="flex mt-8 mb-4">
       <div v-if="props.infoSwitch.value.length > 0" class="w-full grid grid-cols-4">
         <switch-device @controll="(state) => hanldeTouch(sw.position, state)" v-for="sw in props.infoSwitch.value"
-          :key="sw.position" :name="sw?.name ?? `Công tắc ${sw.position}`" :state="sw.state" />
+          :key="sw.position" :name="sw?.name || `Công tắc ${sw.position}`" :state="sw.state" />
       </div>
       <div v-else>thiết bị trống</div>
     </div>

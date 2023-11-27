@@ -10,11 +10,15 @@
       }
     "
   >
-    <n-drawer-content title="Tạo ngữ cảnh" closable>
+    <n-drawer-content title="Tạo Automation" closable>
       <n-space vertical>
         <n-space vertical>
           <n-text strong> Ràng buộc vào </n-text>
           <n-select v-model:value="numTouch" :options="bindOptions" />
+        </n-space>
+        <n-space vertical>
+          <n-text strong> Với trạng thái </n-text>
+          <n-switch v-model:value="bindState" />
         </n-space>
         <n-space vertical>
           <n-text strong> Chọn loại công tắc </n-text>
@@ -33,7 +37,7 @@
           <n-switch v-model:value="chooseState" />
         </n-space>
         <n-space justify="end">
-          <n-button @click="addScene" type="success">
+          <n-button @click="addAuto" type="success">
             Thêm đối tượng điều khiển
           </n-button>
         </n-space>
@@ -110,8 +114,9 @@ const numTouch = ref(null);
 const touchOptions = ref<Array<TreeSelectOption> | []>([]);
 const selectPosition = ref<string | null>(null);
 const bindOptions = ref<Array<SelectOption> | []>([]);
+const bindState = ref<boolean>(true);
 
-const addScene = () => {
+const addAuto = () => {
   if (wsClient.value) {
     if (wsClient.value.readyState === wsClient.value.OPEN) {
       console.log(
@@ -129,9 +134,10 @@ const addScene = () => {
       const packet = {
         target: props.nodeBase.id,
         payload: {
-          pType: "scene",
+          pType: "automation",
           pAction: "CREATE",
           mode: 1, // read all scene at num
+          state: bindState.value ? 0 : 1, // on state
           position: numTouch.value,
           payload: {
             target: selectPosition.value.split("-")[0],

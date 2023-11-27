@@ -210,7 +210,7 @@ const startWebsocket = (hostname: string, cb: (ctx: WebSocket) => void) => {
     const message = event.data;
     try {
       const payload: MessageSocketProps = JSON.parse(message);
-      console.log("Nhận được dữ liệu từ server:", payload);
+      // console.log("Nhận được dữ liệu từ server:", payload);
       classifyPacket(payload, ws);
     } catch (error) {
       console.log("Dữ liệu không hợp không thể parse sang kiểu JSON");

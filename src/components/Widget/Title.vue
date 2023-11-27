@@ -28,7 +28,7 @@
         </n-button>
       </template>
       <n-button-group size="large" vertical>
-        <n-button :key="option.key" v-for="option in optionsDropdown"
+        <n-button :disabled="props?.isRoot && (option.key === 'scene' || option.key === 'automation')" :key="option.key" v-for="option in optionsDropdown"
           @click="handleActiveSchedule(option.key as TypeMenu)">
           <i style="line-height: 0;" class="mr-2" :class="option.icon"></i>
           <span>{{ option.label }}</span>
@@ -64,7 +64,12 @@ const props = defineProps<{
 const optionsState = ref<boolean>(false);
 const settingActive = ref<boolean>(false);
 
-const optionsDropdown = [
+const optionsDropdown: {
+  label: string,
+  key: TypeMenu,
+  icon: string,
+}[]
+ = [
   {
     label: 'lập lịch',
     key: 'schedule',
@@ -79,6 +84,11 @@ const optionsDropdown = [
     label: 'ngữ cảnh',
     key: 'scene',
     icon: 'fi fi-rr-picture'
+  },
+  {
+    label: 'tự động',
+    key: 'automation',
+    icon: 'fi fi-rr-bolt-auto'
   },
   {
     label: 'Thông tin',
