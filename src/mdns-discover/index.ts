@@ -15,7 +15,7 @@ export const checkServiceDNS = async (cb: (ip: string | undefined) => void) => {
     console.log("Zeroconf Service Changed:");
     console.log(result);
     if (result.action === 'resolved') {
-      if (result.service.name.includes('ESP32 Skytech') && result.service.ipv4Addresses.length > 0) {
+      if (result.service.name.includes('skytech') && result.service.ipv4Addresses.length > 0) {
         localStorage.setItem('ip-dns-root', result.service.ipv4Addresses[0]);
         commonStore.ipMeshRoot = result.service.ipv4Addresses[0];
         cb(result.service.ipv4Addresses[0]);
